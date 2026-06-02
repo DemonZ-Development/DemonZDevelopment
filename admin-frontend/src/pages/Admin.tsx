@@ -1,550 +1,883 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Input } from '../components/ui/Input';
+import { LoadingState, EmptyState } from '../components/ui/State';
+import {
+  EditIcon,
+  LogoutIcon,
+  PlusIcon,
+  SearchIcon,
+  TrashIcon,
+} from '../components/ui/Icon';
+import { StatsOverview } from '../components/admin/StatsOverview';
+import { ProjectFormModal } from '../components/admin/ProjectFormModal';
+import { ArticleFormModal } from '../components/admin/ArticleFormModal';
+import {
+  CommentDetailModal,
+  MessageDetailModal,
+} from '../components/admin/DetailModals';
+import { ToastProvider } from '../components/ui/Toast';
+import { useToast } from '../hooks/useToast';
+import {
+  ApiError,
+  adminLogin,
+  approveComment,
+  deleteArticle,
+  deleteComment,
+  deleteMessage,
+  deleteProject,
+  fetchAdminArticles,
+  fetchAdminComments,
+  fetchAdminMessages,
+  fetchAdminProjects,
+  fetchStats,
+  markMessageRead,
+  type AdminArticle,
+  type AdminComment,
+  type AdminMessage,
+  type AdminProject,
+  type Stats,
+} from '../lib/api';
+import styles from './Admin.module.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://dzd-api.demonzdevelopment.workers.dev/api';
+const TOKEN_KEY = 'dzd_admin_token';
 
 type Tab = 'projects' | 'articles' | 'comments' | 'messages';
 
-interface AdminProject {
-  id: string;
-  slug: string;
-  name: string;
-  category: string;
-  downloads: number;
-}
-interface AdminArticle {
-  id: string;
-  slug: string;
-  title: string;
-  published: boolean;
-  category: string | null;
-  published_at: string | null;
-  updated_at: string;
-}
-interface AdminComment {
-  id: string;
-  user_name: string;
-  user_email: string;
-  comment_text: string;
-  approved: boolean;
-  created_at: string;
-}
-interface AdminMessage {
-  id: string;
-  name: string;
-  email: string;
-  message: string;
-  read: boolean;
-  created_at: string;
+type DeleteTarget =
+  | { kind: 'project'; id: string; name: string }
+  | { kind: 'article'; id: string; title: string }
+  | { kind: 'comment'; id: string }
+  | { kind: 'message'; id: string; name: string }
+  | null;
+
+interface ProjectFormTarget {
+  mode: 'create' | 'edit';
+  project: AdminProject | null;
 }
 
-const s: Record<string, React.CSSProperties> = {
-  page: { minHeight: '100vh', paddingTop: '90px' },
-  container: { maxWidth: 1000, margin: '0 auto', padding: '0 20px 80px' },
-  title: {
-    fontFamily: 'var(--font-heading)',
-    fontSize: '2.2rem',
-    fontWeight: 700,
-    color: 'var(--color-text)',
-    marginBottom: 32,
-  },
-  loginWrap: {
-    maxWidth: 400,
-    margin: '80px auto',
-    padding: 40,
-    background: 'var(--color-surface)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 16,
-  },
-  loginTitle: {
-    fontFamily: 'var(--font-heading)',
-    fontSize: '1.6rem',
-    fontWeight: 600,
-    color: 'var(--color-text)',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    background: 'var(--color-bg)',
-    border: '1px solid var(--color-border)',
-    borderRadius: 8,
-    color: 'var(--color-text)',
-    fontFamily: 'var(--font-body)',
-    fontSize: '1rem',
-    outline: 'none',
-    marginBottom: 16,
-  },
-  error: {
-    color: '#ef4444',
-    fontSize: '0.9rem',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  tabs: {
-    display: 'flex',
-    gap: 0,
-    borderBottom: '1px solid var(--color-border)',
-    marginBottom: 24,
-  },
-  tab: {
-    padding: '10px 20px',
-    background: 'none',
-    border: 'none',
-    borderBottom: '2px solid transparent',
-    color: 'var(--color-text-secondary)',
-    fontFamily: 'var(--font-heading)',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-  },
-  tabActive: {
-    color: 'var(--color-accent)',
-    borderBottomColor: 'var(--color-accent)',
-  },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: {
-    textAlign: 'left',
-    padding: '10px 12px',
-    borderBottom: '1px solid var(--color-border)',
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.8rem',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  td: {
-    padding: '12px',
-    borderBottom: '1px solid var(--color-border)',
-    fontSize: '0.9rem',
-    color: 'var(--color-text)',
-  },
-  badge: {
-    display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: 10,
-    fontSize: '0.75rem',
-    fontWeight: 600,
-  },
-  badgeGreen: { background: 'rgba(34,197,94,0.15)', color: '#22c55e' },
-  badgeYellow: { background: 'rgba(234,179,8,0.15)', color: '#eab308' },
-  badgeRed: { background: 'rgba(239,68,68,0.15)', color: '#ef4444' },
-  actions: { display: 'flex', gap: 6 },
-  empty: {
-    padding: 40,
-    textAlign: 'center',
-    color: 'var(--color-text-secondary)',
-  },
-  logoutBtn: {
-    padding: '6px 16px',
-    background: 'transparent',
-    border: '1px solid var(--color-border)',
-    borderRadius: 6,
-    color: 'var(--color-text-secondary)',
-    fontSize: '0.85rem',
-    cursor: 'pointer',
-    marginLeft: 'auto',
-  },
-  headerRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 8,
-  },
-  statusCell: {
-    cursor: 'pointer',
-  },
-};
+interface ArticleFormTarget {
+  mode: 'create' | 'edit';
+  article: AdminArticle | null;
+}
 
-async function adminFetch(
-  path: string,
-  token: string,
-  options: RequestInit = {},
-): Promise<Response> {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-  if (options.headers) {
-    Object.assign(headers, options.headers as Record<string, string>);
+// ─── Login ─────────────────────────────────────────────────
+
+function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
+  const toast = useToast();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      const t = await adminLogin(password);
+      onLogin(t);
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && err.status === 401
+          ? 'Invalid credentials'
+          : err instanceof Error
+            ? err.message
+            : 'Connection error';
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
   }
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  if (res.status === 401) throw new Error('Unauthorized');
-  return res;
+
+  return (
+    <div className={styles.loginWrap}>
+      <h2 className={styles.loginTitle}>Admin Login</h2>
+      {error && <p className={styles.loginError}>{error}</p>}
+      <form onSubmit={handleSubmit}>
+        <Input
+          type="password"
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter admin password"
+          autoFocus
+          required
+        />
+        <Button type="submit" disabled={submitting} className={styles.loginButton}>
+          {submitting ? 'Signing in…' : 'Sign In'}
+        </Button>
+      </form>
+    </div>
+  );
 }
 
-export default function Admin() {
+// ─── Dashboard ─────────────────────────────────────────────
+
+function AdminDashboard({
+  token,
+  onLogout,
+}: {
+  token: string;
+  onLogout: () => void;
+}) {
   useDocumentTitle('Admin | DemonZ Development');
 
-  const [token, setToken] = useState<string | null>(
-    () => sessionStorage.getItem('dzd_admin_token'),
-  );
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>('projects');
-  const [confirmDelete, setConfirmDelete] = useState<
-    | { kind: 'project'; id: string; name: string }
-    | { kind: 'comment'; id: string }
-    | null
-  >(null);
+  const [search, setSearch] = useState('');
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [messages, setMessages] = useState<AdminMessage[]>([]);
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-    try {
-      const res = await fetch(`${API_BASE}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      if (!res.ok) {
-        setLoginError('Invalid credentials');
-        return;
-      }
-      const { token: t } = await res.json();
-      setToken(t);
-      sessionStorage.setItem('dzd_admin_token', t);
-    } catch {
-      setLoginError('Connection error');
-    }
-  };
+  const [tabLoading, setTabLoading] = useState(false);
+  const [tabError, setTabError] = useState(false);
 
-  const logout = () => {
-    setToken(null);
-    sessionStorage.removeItem('dzd_admin_token');
-  };
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+  const [projectForm, setProjectForm] = useState<ProjectFormTarget | null>(null);
+  const [articleForm, setArticleForm] = useState<ArticleFormTarget | null>(null);
+  const [viewComment, setViewComment] = useState<AdminComment | null>(null);
+  const [viewMessage, setViewMessage] = useState<AdminMessage | null>(null);
 
-  // Load data for current tab
+  // Fetch stats once on mount.
   useEffect(() => {
-    if (!token) return;
     let active = true;
+    setStatsLoading(true);
+    fetchStats()
+      .then((s) => {
+        if (active) setStats(s);
+      })
+      .catch(() => {
+        if (active) toast.error('Failed to load stats');
+      })
+      .finally(() => {
+        if (active) setStatsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Load data for the active tab.
+  useEffect(() => {
+    let active = true;
+    setTabLoading(true);
+    setTabError(false);
     const load = async () => {
       try {
+        let data;
         if (tab === 'projects') {
-          const res = await adminFetch('/projects', token);
-          if (res.ok && active) setProjects(await res.json());
+          data = await fetchAdminProjects(token);
+          if (active) setProjects(data);
         } else if (tab === 'articles') {
-          // Use the dedicated admin route that returns published + drafts.
-          const res = await adminFetch('/admin/articles', token);
-          if (res.ok && active) setArticles(await res.json());
+          data = await fetchAdminArticles(token);
+          if (active) setArticles(data);
         } else if (tab === 'comments') {
-          const res = await adminFetch('/admin/comments', token);
-          if (res.ok && active) setComments(await res.json());
+          data = await fetchAdminComments(token);
+          if (active) setComments(data);
         } else if (tab === 'messages') {
-          const res = await adminFetch('/admin/messages', token);
-          if (res.ok && active) setMessages(await res.json());
+          data = await fetchAdminMessages(token);
+          if (active) setMessages(data);
         }
       } catch (err) {
-        if (err instanceof Error && err.message === 'Unauthorized') logout();
+        if (err instanceof ApiError && err.status === 401) {
+          onLogout();
+          return;
+        }
+        if (active) {
+          setTabError(true);
+          toast.error('Failed to load data');
+        }
+      } finally {
+        if (active) setTabLoading(false);
       }
     };
     load();
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, tab]);
 
-  const approveComment = async (id: string) => {
-    if (!token) return;
-    await adminFetch(`/admin/comments/${id}/approve`, token, { method: 'PUT' });
-    setComments((c) => c.map((x) => (x.id === id ? { ...x, approved: true } : x)));
-  };
-
-  const performDelete = async () => {
-    if (!token || !confirmDelete) return;
-    if (confirmDelete.kind === 'project') {
-      await adminFetch(`/admin/projects/${confirmDelete.id}`, token, {
-        method: 'DELETE',
-      });
-      setProjects((p) => p.filter((x) => x.id !== confirmDelete.id));
-    } else if (confirmDelete.kind === 'comment') {
-      await adminFetch(`/admin/comments/${confirmDelete.id}`, token, {
-        method: 'DELETE',
-      });
-      setComments((c) => c.filter((x) => x.id !== confirmDelete.id));
-    }
-    setConfirmDelete(null);
-  };
-
-  const markRead = async (id: string) => {
-    if (!token) return;
-    await adminFetch(`/admin/messages/${id}/read`, token, { method: 'PUT' });
-    setMessages((m) => m.map((x) => (x.id === id ? { ...x, read: true } : x)));
-  };
-
-  if (!token) {
-    return (
-      <div style={s.page}>
-        <div style={s.loginWrap}>
-          <h2 style={s.loginTitle}>Admin Login</h2>
-          {loginError && <p style={s.error}>{loginError}</p>}
-          <form onSubmit={handleLogin}>
-            <input
-              style={s.input}
-              type="password"
-              placeholder="Admin password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-            />
-            <Button type="submit" style={{ width: '100%' }}>
-              Sign In
-            </Button>
-          </form>
-        </div>
-      </div>
+  // ---- Filtering ----
+  const filteredProjects = useMemo(() => {
+    if (!search.trim()) return projects;
+    const q = search.toLowerCase();
+    return projects.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q),
     );
+  }, [projects, search]);
+
+  const filteredArticles = useMemo(() => {
+    if (!search.trim()) return articles;
+    const q = search.toLowerCase();
+    return articles.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.slug.toLowerCase().includes(q) ||
+        (a.category ?? '').toLowerCase().includes(q),
+    );
+  }, [articles, search]);
+
+  const filteredComments = useMemo(() => {
+    if (!search.trim()) return comments;
+    const q = search.toLowerCase();
+    return comments.filter(
+      (c) =>
+        c.user_name.toLowerCase().includes(q) ||
+        c.user_email.toLowerCase().includes(q) ||
+        c.comment_text.toLowerCase().includes(q),
+    );
+  }, [comments, search]);
+
+  const filteredMessages = useMemo(() => {
+    if (!search.trim()) return messages;
+    const q = search.toLowerCase();
+    return messages.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.email.toLowerCase().includes(q) ||
+        m.message.toLowerCase().includes(q),
+    );
+  }, [messages, search]);
+
+  // ---- Stats counts (derived from current data) ----
+  const pendingCommentCount = comments.filter((c) => !c.approved).length;
+  const unreadMessageCount = messages.filter((m) => !m.read).length;
+
+  // ---- Action handlers ----
+  async function handleApproveComment(id: string) {
+    try {
+      await approveComment(token, id);
+      setComments((cs) =>
+        cs.map((c) => (c.id === id ? { ...c, approved: true } : c)),
+      );
+      toast.success('Comment approved');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to approve');
+    }
+  }
+
+  async function handleOpenMessage(m: AdminMessage) {
+    setViewMessage(m);
+    if (!m.read) {
+      // Optimistic update, then server call.
+      setMessages((ms) => ms.map((x) => (x.id === m.id ? { ...x, read: true } : x)));
+      try {
+        await markMessageRead(token, m.id);
+      } catch {
+        setMessages((ms) =>
+          ms.map((x) => (x.id === m.id ? { ...x, read: false } : x)),
+        );
+        toast.error('Failed to mark as read');
+      }
+    }
+  }
+
+  async function handleDeleteMessage(id: string) {
+    try {
+      await deleteMessage(token, id);
+      setMessages((ms) => ms.filter((m) => m.id !== id));
+      toast.success('Message deleted');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Delete failed');
+    }
+  }
+
+  function handleProjectSaved(saved: AdminProject, isNew: boolean) {
+    if (isNew) {
+      setProjects((ps) => [saved, ...ps]);
+    } else {
+      setProjects((ps) => ps.map((p) => (p.id === saved.id ? saved : p)));
+    }
+    setProjectForm(null);
+  }
+
+  function handleArticleSaved(saved: AdminArticle, isNew: boolean) {
+    if (isNew) {
+      setArticles((as) => [saved, ...as]);
+    } else {
+      setArticles((as) => as.map((a) => (a.id === saved.id ? saved : a)));
+    }
+    setArticleForm(null);
+  }
+
+  async function performDelete() {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    try {
+      if (target.kind === 'project') {
+        await deleteProject(token, target.id);
+        setProjects((ps) => ps.filter((p) => p.id !== target.id));
+        toast.success('Project deleted');
+      } else if (target.kind === 'article') {
+        await deleteArticle(token, target.id);
+        setArticles((as) => as.filter((a) => a.id !== target.id));
+        toast.success('Article deleted');
+      } else if (target.kind === 'comment') {
+        await deleteComment(token, target.id);
+        setComments((cs) => cs.filter((c) => c.id !== target.id));
+        toast.success('Comment deleted');
+      } else if (target.kind === 'message') {
+        await deleteMessage(token, target.id);
+        setMessages((ms) => ms.filter((m) => m.id !== target.id));
+        toast.success('Message deleted');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Delete failed');
+    }
+  }
+
+  function getDeleteDescription(): string {
+    if (!deleteTarget) return '';
+    switch (deleteTarget.kind) {
+      case 'project':
+        return `Delete project "${deleteTarget.name}"? This cannot be undone.`;
+      case 'article':
+        return `Delete article "${deleteTarget.title}"? This cannot be undone.`;
+      case 'comment':
+        return 'Delete this comment? This cannot be undone.';
+      case 'message':
+        return `Delete message from ${deleteTarget.name}? This cannot be undone.`;
+    }
   }
 
   return (
-    <div style={s.page}>
-      <div style={s.container}>
-        <div style={s.headerRow}>
-          <h1 style={{ ...s.title, marginBottom: 0 }}>Admin Dashboard</h1>
-          <button style={s.logoutBtn} onClick={logout}>
-            Logout
-          </button>
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.headerRow}>
+          <h1 className={styles.title}>Admin Dashboard</h1>
+          <Button variant="ghost" size="small" onClick={onLogout}>
+            <LogoutIcon size={14} /> Logout
+          </Button>
         </div>
 
-        <div style={s.tabs} role="tablist">
-          {(['projects', 'articles', 'comments', 'messages'] as Tab[]).map((t) => (
-            <button
-              key={t}
-              role="tab"
-              aria-selected={tab === t}
-              style={{ ...s.tab, ...(tab === t ? s.tabActive : {}) }}
-              onClick={() => setTab(t)}
+        {statsLoading && !stats ? (
+          <LoadingState label="Loading stats" />
+        ) : stats ? (
+          <StatsOverview
+            projectCount={stats.projectCount}
+            articleCount={stats.articleCount}
+            pendingComments={pendingCommentCount}
+            unreadMessages={unreadMessageCount}
+            totalDownloads={stats.totalDownloads}
+          />
+        ) : null}
+
+        <div className={styles.tabs} role="tablist">
+          {(['projects', 'articles', 'comments', 'messages'] as Tab[]).map((t) => {
+            const badge =
+              t === 'comments'
+                ? pendingCommentCount
+                : t === 'messages'
+                  ? unreadMessageCount
+                  : 0;
+            return (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={tab === t}
+                className={`${styles.tab} ${tab === t ? styles.tabActive : ''}`}
+                onClick={() => {
+                  setTab(t);
+                  setSearch('');
+                }}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+                {badge > 0 && <span className={styles.tabBadge}>{badge}</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={styles.toolbar}>
+          <div className={styles.searchWrap}>
+            <span className={styles.searchIcon} aria-hidden="true">
+              <SearchIcon size={16} />
+            </span>
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder={
+                tab === 'projects'
+                  ? 'Search projects…'
+                  : tab === 'articles'
+                    ? 'Search articles…'
+                    : tab === 'comments'
+                      ? 'Search comments…'
+                      : 'Search messages…'
+              }
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label={`Search ${tab}`}
+            />
+          </div>
+          {tab === 'projects' && (
+            <Button
+              size="small"
+              onClick={() => setProjectForm({ mode: 'create', project: null })}
             >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-              {t === 'comments' &&
-                comments.filter((c) => !c.approved).length > 0 && (
-                  <span style={{ ...s.badge, ...s.badgeYellow, marginLeft: 6 }}>
-                    {comments.filter((c) => !c.approved).length}
-                  </span>
-                )}
-            </button>
-          ))}
+              <PlusIcon size={14} /> New Project
+            </Button>
+          )}
+          {tab === 'articles' && (
+            <Button
+              size="small"
+              onClick={() => setArticleForm({ mode: 'create', article: null })}
+            >
+              <PlusIcon size={14} /> New Article
+            </Button>
+          )}
         </div>
 
-        {tab === 'projects' &&
-          (projects.length === 0 ? (
-            <div style={s.empty}>No projects yet.</div>
-          ) : (
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  <th style={s.th}>Name</th>
-                  <th style={s.th}>Category</th>
-                  <th style={s.th}>Downloads</th>
-                  <th style={s.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((p) => (
-                  <tr key={p.id}>
-                    <td style={s.td}>{p.name}</td>
-                    <td style={s.td}>
-                      <span style={{ ...s.badge, ...s.badgeGreen }}>{p.category}</span>
-                    </td>
-                    <td style={s.td}>{p.downloads}</td>
-                    <td style={s.td}>
-                      <div style={s.actions}>
-                        <Button
-                          size="small"
-                          variant="danger"
-                          onClick={() =>
-                            setConfirmDelete({ kind: 'project', id: p.id, name: p.name })
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ))}
-
-        {tab === 'articles' &&
-          (articles.length === 0 ? (
-            <div style={s.empty}>No articles yet.</div>
-          ) : (
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  <th style={s.th}>Title</th>
-                  <th style={s.th}>Category</th>
-                  <th style={s.th}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {articles.map((a) => (
-                  <tr key={a.id}>
-                    <td style={s.td}>{a.title}</td>
-                    <td style={s.td}>{a.category || '—'}</td>
-                    <td style={s.td}>
-                      <span
-                        style={{
-                          ...s.badge,
-                          ...(a.published ? s.badgeGreen : s.badgeYellow),
-                        }}
-                      >
-                        {a.published ? 'Published' : 'Draft'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ))}
-
-        {tab === 'comments' &&
-          (comments.length === 0 ? (
-            <div style={s.empty}>No comments yet.</div>
-          ) : (
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  <th style={s.th}>User</th>
-                  <th style={s.th}>Comment</th>
-                  <th style={s.th}>Status</th>
-                  <th style={s.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comments.map((c) => (
-                  <tr key={c.id}>
-                    <td style={s.td}>
-                      {c.user_name}
-                      <br />
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                        {c.user_email}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        ...s.td,
-                        maxWidth: 300,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {c.comment_text}
-                    </td>
-                    <td style={s.td}>
-                      <span
-                        style={{
-                          ...s.badge,
-                          ...(c.approved ? s.badgeGreen : s.badgeYellow),
-                        }}
-                      >
-                        {c.approved ? 'Approved' : 'Pending'}
-                      </span>
-                    </td>
-                    <td style={s.td}>
-                      <div style={s.actions}>
-                        {!c.approved && (
-                          <Button
-                            size="small"
-                            variant="primary"
-                            onClick={() => approveComment(c.id)}
-                          >
-                            Approve
-                          </Button>
-                        )}
-                        <Button
-                          size="small"
-                          variant="danger"
-                          onClick={() =>
-                            setConfirmDelete({ kind: 'comment', id: c.id })
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ))}
-
-        {tab === 'messages' &&
-          (messages.length === 0 ? (
-            <div style={s.empty}>No messages yet.</div>
-          ) : (
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  <th style={s.th}>From</th>
-                  <th style={s.th}>Message</th>
-                  <th style={s.th}>Date</th>
-                  <th style={s.th}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {messages.map((m) => (
-                  <tr
-                    key={m.id}
-                    onClick={() => markRead(m.id)}
-                    style={s.statusCell}
-                  >
-                    <td style={s.td}>
-                      {m.name}
-                      <br />
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                        {m.email}
-                      </span>
-                    </td>
-                    <td style={{ ...s.td, maxWidth: 400 }}>
-                      {m.message.substring(0, 120)}
-                      {m.message.length > 120 ? '...' : ''}
-                    </td>
-                    <td style={s.td}>
-                      {new Date(m.created_at).toLocaleDateString()}
-                    </td>
-                    <td style={s.td}>
-                      <span
-                        style={{
-                          ...s.badge,
-                          ...(m.read ? s.badgeGreen : s.badgeRed),
-                        }}
-                      >
-                        {m.read ? 'Read' : 'New'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ))}
+        {tabLoading ? (
+          <LoadingState label={`Loading ${tab}`} />
+        ) : tabError ? (
+          <EmptyState
+            title="Failed to load"
+            description="Could not fetch data from the server."
+          />
+        ) : tab === 'projects' ? (
+          <ProjectsTable
+            projects={filteredProjects}
+            onEdit={(p) => setProjectForm({ mode: 'edit', project: p })}
+            onDelete={(p) =>
+              setDeleteTarget({ kind: 'project', id: p.id, name: p.name })
+            }
+          />
+        ) : tab === 'articles' ? (
+          <ArticlesTable
+            articles={filteredArticles}
+            onEdit={(a) => setArticleForm({ mode: 'edit', article: a })}
+            onDelete={(a) =>
+              setDeleteTarget({ kind: 'article', id: a.id, title: a.title })
+            }
+          />
+        ) : tab === 'comments' ? (
+          <CommentsTable
+            comments={filteredComments}
+            onView={(c) => setViewComment(c)}
+            onApprove={handleApproveComment}
+            onDelete={(c) => setDeleteTarget({ kind: 'comment', id: c.id })}
+          />
+        ) : (
+          <MessagesTable
+            messages={filteredMessages}
+            onView={handleOpenMessage}
+            onDelete={(m) =>
+              setDeleteTarget({ kind: 'message', id: m.id, name: m.name })
+            }
+          />
+        )}
       </div>
 
       <ConfirmDialog
-        open={confirmDelete !== null}
-        title="Delete?"
-        description={
-          confirmDelete?.kind === 'project'
-            ? `Delete "${confirmDelete.name}"? This cannot be undone.`
-            : 'Delete this comment? This cannot be undone.'
-        }
+        open={deleteTarget !== null}
+        title="Confirm Delete"
+        description={getDeleteDescription()}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         variant="danger"
         onConfirm={performDelete}
-        onCancel={() => setConfirmDelete(null)}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {projectForm && (
+        <ProjectFormModal
+          open={projectForm !== null}
+          token={token}
+          project={projectForm.project}
+          onClose={() => setProjectForm(null)}
+          onSaved={handleProjectSaved}
+        />
+      )}
+
+      {articleForm && (
+        <ArticleFormModal
+          open={articleForm !== null}
+          token={token}
+          article={articleForm.article}
+          onClose={() => setArticleForm(null)}
+          onSaved={handleArticleSaved}
+        />
+      )}
+
+      <MessageDetailModal
+        open={viewMessage !== null}
+        message={viewMessage}
+        onClose={() => setViewMessage(null)}
+        onDelete={handleDeleteMessage}
+      />
+
+      <CommentDetailModal
+        open={viewComment !== null}
+        comment={viewComment}
+        onClose={() => setViewComment(null)}
+        onDelete={(id) => {
+          setDeleteTarget({ kind: 'comment', id });
+          setViewComment(null);
+        }}
+        onApprove={(id) => {
+          handleApproveComment(id);
+          setViewComment(null);
+        }}
       />
     </div>
   );
+}
+
+// ─── Table subcomponents ──────────────────────────────────
+
+function ProjectsTable({
+  projects,
+  onEdit,
+  onDelete,
+}: {
+  projects: AdminProject[];
+  onEdit: (p: AdminProject) => void;
+  onDelete: (p: AdminProject) => void;
+}) {
+  if (projects.length === 0) {
+    return <EmptyState title="No projects" description="No matching projects." />;
+  }
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Downloads</th>
+            <th>Status</th>
+            <th className={styles.actionsCol}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((p) => (
+            <tr key={p.id}>
+              <td>
+                <div className={styles.primary}>{p.name}</div>
+                <div className={styles.muted}>{p.slug}</div>
+              </td>
+              <td>
+                <span className={`${styles.tag} ${styles.tagAccent}`}>
+                  {p.category}
+                </span>
+              </td>
+              <td>{p.downloads.toLocaleString()}</td>
+              <td>
+                {p.is_featured ? (
+                  <span className={`${styles.tag} ${styles.tagSuccess}`}>
+                    Featured
+                  </span>
+                ) : (
+                  <span className={styles.muted}>—</span>
+                )}
+              </td>
+              <td className={styles.actionsCol}>
+                <div className={styles.actions}>
+                  <Button size="small" variant="ghost" onClick={() => onEdit(p)}>
+                    <EditIcon size={12} /> Edit
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="danger"
+                    onClick={() => onDelete(p)}
+                  >
+                    <TrashIcon size={12} /> Delete
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ArticlesTable({
+  articles,
+  onEdit,
+  onDelete,
+}: {
+  articles: AdminArticle[];
+  onEdit: (a: AdminArticle) => void;
+  onDelete: (a: AdminArticle) => void;
+}) {
+  if (articles.length === 0) {
+    return <EmptyState title="No articles" description="No matching articles." />;
+  }
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Updated</th>
+            <th className={styles.actionsCol}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {articles.map((a) => (
+            <tr key={a.id}>
+              <td>
+                <div className={styles.primary}>{a.title}</div>
+                <div className={styles.muted}>{a.slug}</div>
+              </td>
+              <td>{a.category || <span className={styles.muted}>—</span>}</td>
+              <td>
+                <span
+                  className={`${styles.tag} ${
+                    a.published ? styles.tagSuccess : styles.tagWarning
+                  }`}
+                >
+                  {a.published ? 'Published' : 'Draft'}
+                </span>
+              </td>
+              <td className={styles.muted}>
+                {new Date(a.updated_at).toLocaleDateString()}
+              </td>
+              <td className={styles.actionsCol}>
+                <div className={styles.actions}>
+                  <Button size="small" variant="ghost" onClick={() => onEdit(a)}>
+                    <EditIcon size={12} /> Edit
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="danger"
+                    onClick={() => onDelete(a)}
+                  >
+                    <TrashIcon size={12} /> Delete
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CommentsTable({
+  comments,
+  onView,
+  onApprove,
+  onDelete,
+}: {
+  comments: AdminComment[];
+  onView: (c: AdminComment) => void;
+  onApprove: (id: string) => void;
+  onDelete: (c: AdminComment) => void;
+}) {
+  if (comments.length === 0) {
+    return <EmptyState title="No comments" description="No matching comments." />;
+  }
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Preview</th>
+            <th>Status</th>
+            <th>Posted</th>
+            <th className={styles.actionsCol}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {comments.map((c) => (
+            <tr key={c.id}>
+              <td>
+                <div className={styles.primary}>{c.user_name}</div>
+                <div className={styles.muted}>{c.user_email}</div>
+              </td>
+              <td className={styles.preview}>
+                <button
+                  type="button"
+                  className={styles.previewBtn}
+                  onClick={() => onView(c)}
+                  title="Click to view full comment"
+                >
+                  {c.comment_text.length > 80
+                    ? `${c.comment_text.slice(0, 80)}…`
+                    : c.comment_text}
+                </button>
+              </td>
+              <td>
+                <span
+                  className={`${styles.tag} ${
+                    c.approved ? styles.tagSuccess : styles.tagWarning
+                  }`}
+                >
+                  {c.approved ? 'Approved' : 'Pending'}
+                </span>
+              </td>
+              <td className={styles.muted}>
+                {new Date(c.created_at).toLocaleDateString()}
+              </td>
+              <td className={styles.actionsCol}>
+                <div className={styles.actions}>
+                  <Button
+                    size="small"
+                    variant="ghost"
+                    onClick={() => onView(c)}
+                  >
+                    View
+                  </Button>
+                  {!c.approved && (
+                    <Button
+                      size="small"
+                      variant="primary"
+                      onClick={() => onApprove(c.id)}
+                    >
+                      Approve
+                    </Button>
+                  )}
+                  <Button
+                    size="small"
+                    variant="danger"
+                    onClick={() => onDelete(c)}
+                  >
+                    <TrashIcon size={12} />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function MessagesTable({
+  messages,
+  onView,
+  onDelete,
+}: {
+  messages: AdminMessage[];
+  onView: (m: AdminMessage) => void;
+  onDelete: (m: AdminMessage) => void;
+}) {
+  if (messages.length === 0) {
+    return <EmptyState title="No messages" description="No matching messages." />;
+  }
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>Preview</th>
+            <th>Received</th>
+            <th>Status</th>
+            <th className={styles.actionsCol}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {messages.map((m) => (
+            <tr
+              key={m.id}
+              className={!m.read ? styles.unread : undefined}
+            >
+              <td>
+                <div className={styles.primary}>{m.name}</div>
+                <div className={styles.muted}>{m.email}</div>
+              </td>
+              <td className={styles.preview}>
+                <button
+                  type="button"
+                  className={styles.previewBtn}
+                  onClick={() => onView(m)}
+                  title="Click to view full message"
+                >
+                  {m.message.length > 100
+                    ? `${m.message.slice(0, 100)}…`
+                    : m.message}
+                </button>
+              </td>
+              <td className={styles.muted}>
+                {new Date(m.created_at).toLocaleDateString()}
+              </td>
+              <td>
+                <span
+                  className={`${styles.tag} ${
+                    m.read ? styles.tagSuccess : styles.tagDanger
+                  }`}
+                >
+                  {m.read ? 'Read' : 'Unread'}
+                </span>
+              </td>
+              <td className={styles.actionsCol}>
+                <div className={styles.actions}>
+                  <Button size="small" variant="ghost" onClick={() => onView(m)}>
+                    View
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="danger"
+                    onClick={() => onDelete(m)}
+                  >
+                    <TrashIcon size={12} />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Root component with ToastProvider ───────────────────
+
+export default function Admin() {
+  return (
+    <ToastProvider>
+      <AdminRoot />
+    </ToastProvider>
+  );
+}
+
+function AdminRoot() {
+  const [token, setToken] = useState<string | null>(
+    () => sessionStorage.getItem(TOKEN_KEY),
+  );
+
+  function handleLogin(t: string) {
+    sessionStorage.setItem(TOKEN_KEY, t);
+    setToken(t);
+  }
+
+  function logout() {
+    sessionStorage.removeItem(TOKEN_KEY);
+    setToken(null);
+  }
+
+  if (!token) {
+    return (
+      <div className={styles.page}>
+        <LoginScreen onLogin={handleLogin} />
+      </div>
+    );
+  }
+
+  return <AdminDashboard token={token} onLogout={logout} />;
 }

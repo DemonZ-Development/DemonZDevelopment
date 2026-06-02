@@ -8,10 +8,11 @@ import styles from './Input.module.css';
 
 interface FieldProps {
   label?: string;
+  helperText?: string;
   children: (id: string) => ReactNode;
 }
 
-function Field({ label, children }: FieldProps) {
+function Field({ label, helperText, children }: FieldProps) {
   const id = useId();
   return (
     <div className={styles.field}>
@@ -21,17 +22,19 @@ function Field({ label, children }: FieldProps) {
         </label>
       )}
       {children(id)}
+      {helperText && <span className={styles.helperText}>{helperText}</span>}
     </div>
   );
 }
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  helperText?: string;
 }
 
-export function Input({ label, id, className, ...rest }: InputProps) {
+export function Input({ label, helperText, id, className, ...rest }: InputProps) {
   return (
-    <Field label={label}>
+    <Field label={label} helperText={helperText}>
       {(generatedId) => (
         <input
           id={id ?? generatedId}
@@ -45,11 +48,12 @@ export function Input({ label, id, className, ...rest }: InputProps) {
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
+  helperText?: string;
 }
 
-export function Textarea({ label, id, className, ...rest }: TextareaProps) {
+export function Textarea({ label, helperText, id, className, ...rest }: TextareaProps) {
   return (
-    <Field label={label}>
+    <Field label={label} helperText={helperText}>
       {(generatedId) => (
         <textarea
           id={id ?? generatedId}
