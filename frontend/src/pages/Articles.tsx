@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { fetchArticles, type Article } from '../lib/api';
 import ScrollReveal from '../components/ScrollReveal';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
-import { EmptyState, LoadingState } from '../components/ui/State';
+import { EmptyState } from '../components/ui/State';
+import { SkeletonGrid } from '../components/ui/Skeleton';
 import s from './Articles.module.css';
 
 const CATS = ['all', 'Tutorial', 'Announcement', 'Tech News'] as const;
@@ -98,7 +99,7 @@ export default function Articles() {
       </div>
 
       {loading ? (
-        <LoadingState label="Loading articles" />
+        <SkeletonGrid count={3} className={s.grid} />
       ) : filteredArticles.length === 0 ? (
         <div className={s.empty}>
           <EmptyState

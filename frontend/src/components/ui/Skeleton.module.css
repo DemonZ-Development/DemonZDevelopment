@@ -1,0 +1,87 @@
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+    background-color: var(--color-surface-elevated);
+  }
+  50% {
+    opacity: 0.4;
+    background-color: var(--color-border);
+  }
+}
+
+.skeletonCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-sizing: border-box;
+  box-shadow: var(--shadow-md);
+  min-height: 320px;
+}
+
+.pulseBlock {
+  animation: pulse 1.5s ease-in-out infinite;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+}
+
+.image {
+  composes: pulseBlock;
+  width: 100%;
+  height: 180px;
+  border-radius: var(--radius-lg);
+}
+
+.title {
+  composes: pulseBlock;
+  width: 70%;
+  height: 1.75rem;
+}
+
+.tagline {
+  composes: pulseBlock;
+  width: 90%;
+  height: 1rem;
+}
+
+.description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.descLine1 {
+  composes: pulseBlock;
+  width: 100%;
+  height: 0.85rem;
+}
+
+.descLine2 {
+  composes: pulseBlock;
+  width: 85%;
+  height: 0.85rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.badge {
+  composes: pulseBlock;
+  width: 70px;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+}
+
+.meta {
+  composes: pulseBlock;
+  width: 100px;
+  height: 1rem;
+  margin-left: auto;
+}
