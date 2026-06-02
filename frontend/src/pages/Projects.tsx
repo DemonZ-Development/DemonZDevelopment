@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
-import { fetchProjects, type Project } from '../lib/api';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProjects } from '../lib/api';
 import ProjectCard, { ProjectCardSkeleton } from '../components/ProjectCard';
 import ScrollReveal from '../components/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import SEO from '../components/SEO';
+import PageTransition from '../components/PageTransition';
 import { EmptyState } from '../components/ui/State';
 import { SearchIcon } from '../components/ui/Icon';
 import styles from './Projects.module.css';
@@ -23,52 +25,24 @@ const SORT_OPTIONS = [
 ] as const;
 
 export default function Projects() {
-  const [allProjects, setAllProjects] = useState<Project[]>([]);
-  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
-  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string>('all');
   const [sort, setSort] = useState<string>('downloads');
 
-  useDocumentTitle('Projects | DemonZ Development');
+  const { data: allProjects = [], isLoading: loading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => fetchProjects(),
+  });
 
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const data = await fetchProjects();
-        if (!active) return;
-        setAllProjects(data);
+  const featuredProjects = useMemo(() => {
+    return allProjects.filter((p) => p.is_featured);
+  }, [allProjects]);
 
-        // Featured Releases (projects where is_featured is true)
-        const feat = data.filter((p) => p.is_featured);
-        setFeaturedProjects(feat);
-
-        // Recent Updates (top 3 projects sorted by updated_at descending)
-        const rec = [...data]
-          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-          .slice(0, 3);
-        setRecentProjects(rec);
-      } catch (err) {
-        console.error('Failed to fetch projects:', err);
-        if (active) {
-          setAllProjects([]);
-          setFeaturedProjects([]);
-          setRecentProjects([]);
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    }
-    load();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const recentProjects = useMemo(() => {
+    return [...allProjects]
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 3);
+  }, [allProjects]);
 
   // Client-side filtering & sorting for the interactive "All Releases" list
   const filteredProjects = useMemo(() => {
@@ -105,7 +79,8 @@ export default function Projects() {
   }, [allProjects, category, search, sort]);
 
   return (
-    <div className={styles.page}>
+    <PageTransition className={styles.page}>
+      <SEO title="Projects" description="Explore our open-source utilities, game releases, and modifications." />
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
@@ -114,48 +89,8 @@ export default function Projects() {
         </div>
       </section>
 
-      {/* Featured Releases */}
-      {featuredProjects.length > 0 && (
-        <ScrollReveal>
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Featured Releases</h2>
-              <p className={styles.sectionSubtitle}>Handpicked highlights from our collection</p>
-            </div>
-            <div className={styles.cards}>
-              {featuredProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          </section>
-        </ScrollReveal>
-      )}
-
-      {/* Recent Updates */}
-      {recentProjects.length > 0 && (
-        <ScrollReveal>
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Recent Updates</h2>
-              <p className={styles.sectionSubtitle}>The latest versions and revisions</p>
-            </div>
-            <div className={styles.cards}>
-              {recentProjects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
-              ))}
-            </div>
-          </section>
-        </ScrollReveal>
-      )}
-
-      {/* All Releases */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>All Releases</h2>
-          <p className={styles.sectionSubtitle}>Browse our entire catalog of projects</p>
-        </div>
-
-        {/* Filters */}
+      {/* Filters (Moved to top) */}
+      <section className={styles.section} style={{ marginBottom: '2rem' }}>
         <div className={styles.filters}>
           <div className={styles.filtersInner}>
             <div className={styles.searchBox}>
@@ -195,6 +130,53 @@ export default function Projects() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Featured Releases */}
+      {featuredProjects.length > 0 && !search && category === 'all' && (
+        <ScrollReveal>
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Featured Releases</h2>
+              <p className={styles.sectionSubtitle}>Handpicked highlights from our collection</p>
+            </div>
+            <div className={styles.cards}>
+              {featuredProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </section>
+        </ScrollReveal>
+      )}
+
+      {/* Recent Updates */}
+      {recentProjects.length > 0 && !search && category === 'all' && (
+        <ScrollReveal>
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Recent Updates</h2>
+              <p className={styles.sectionSubtitle}>The latest versions and revisions</p>
+            </div>
+            <div className={styles.cards}>
+              {recentProjects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          </section>
+        </ScrollReveal>
+      )}
+
+      {/* All Releases */}
+      <section className={styles.section}>
+        {(!search && category === 'all') && (
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>All Releases</h2>
+            <p className={styles.sectionSubtitle}>Browse our entire catalog of projects</p>
+          </div>
+        )}
+
+
+
 
         {/* Grid/Content */}
         <div className={styles.gridInner}>
@@ -222,6 +204,6 @@ export default function Projects() {
           )}
         </div>
       </section>
-    </div>
+    </PageTransition>
   );
 }

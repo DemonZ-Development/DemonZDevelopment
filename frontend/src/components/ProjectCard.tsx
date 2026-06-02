@@ -1,3 +1,4 @@
+import { useRef, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import type { Project } from '../lib/api';
 import { DownloadIcon, ChevronRightIcon, CubeIcon } from './ui/Icon';
@@ -21,8 +22,25 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
+  const cardRef = useRef<HTMLAnchorElement>(null);
+
+  const handleMouseMove = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    cardRef.current.style.setProperty('--mouse-x', `${x}px`);
+    cardRef.current.style.setProperty('--mouse-y', `${y}px`);
+  };
+
   return (
-    <article className={styles.card}>
+    <Link 
+      to={`/projects/${project.slug}`}
+      className={styles.card}
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+    >
+      <div className={styles.glow} />
       <div className={styles.imageWrap}>
         {project.image_url ? (
           <img
@@ -36,11 +54,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <CubeIcon size={40} />
           </span>
         )}
+      </div>
+      <div className={styles.body}>
         <span className={styles.categoryBadge}>
           {CATEGORY_LABELS[project.category] ?? project.category}
         </span>
-      </div>
-      <div className={styles.body}>
         <h3 className={styles.name}>{project.name}</h3>
         <p className={styles.tagline}>{project.tagline}</p>
       </div>
@@ -49,11 +67,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <DownloadIcon size={14} />
           {formatDownloads(project.downloads)}
         </span>
-        <Link to={`/projects/${project.slug}`} className={styles.viewButton}>
+        <span className={styles.viewButton}>
           View Details <ChevronRightIcon size={14} />
-        </Link>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }
 

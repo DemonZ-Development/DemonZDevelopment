@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchArticle, type Article } from '../lib/api';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useQuery } from '@tanstack/react-query';
+import { fetchArticle } from '../lib/api';
+import SEO from '../components/SEO';
+import PageTransition from '../components/PageTransition';
+import TableOfContents from '../components/TableOfContents';
 import { LoadingState, ErrorState } from '../components/ui/State';
 import Markdown from '../components/Markdown';
 import s from './ArticleDetail.module.css';
@@ -15,41 +17,26 @@ function getReadingTime(content: string | null | undefined): string {
 
 export default function ArticleDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const [article, setArticle] = useState<Article | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    fetchArticle(slug)
-      .then((data) => {
-        setArticle(data);
-        setError(false);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [slug]);
-
-  useDocumentTitle(
-    article
-      ? `${article.title} | DemonZ Development`
-      : 'Article | DemonZ Development',
-  );
+  const { data: article, isLoading: loading, isError: error } = useQuery({
+    queryKey: ['article', slug],
+    queryFn: () => fetchArticle(slug!),
+    enabled: !!slug,
+  });
 
   if (loading) {
     return (
-      <div className={s.page}>
+      <PageTransition className={s.page}>
         <div className={s.loading}>
           <LoadingState label="Loading article" />
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   if (error || !article) {
     return (
-      <div className={s.page}>
+      <PageTransition className={s.page}>
         <div className={`${s.container} ${s.error}`}>
           <ErrorState
             title="Article Not Found"
@@ -59,43 +46,56 @@ export default function ArticleDetail() {
             ← Back to Articles
           </Link>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   return (
-    <div className={s.page}>
+    <PageTransition className={s.page}>
+      <SEO 
+        title={article.title}
+        description={article.summary}
+        image={article.image_url || undefined}
+        url={`https://demonzdevelopment.online/articles/${article.slug}`}
+        type="article"
+      />
       <div className={s.container}>
         <Link to="/articles" className={s.backLink}>
           ← Back to Articles
         </Link>
 
-        <article className={s.glassContainer}>
-          <header className={s.header}>
-            {article.category && <span className={s.badge}>{article.category}</span>}
-            <h1 className={s.title}>{article.title}</h1>
-            <div className={s.meta}>
-              <span>
-                {article.published_at
-                  ? new Date(article.published_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })
-                  : ''}
-              </span>
-              <span className={s.bullet}>•</span>
-              <span>{getReadingTime(article.content)}</span>
-            </div>
-          </header>
+        <div className={s.layoutWrapper}>
+          <article className={s.glassContainer}>
+            <header className={s.header}>
+              {article.category && <span className={s.badge}>{article.category}</span>}
+              <h1 className={s.title}>{article.title}</h1>
+              <div className={s.meta}>
+                <span>
+                  {article.published_at
+                    ? new Date(article.published_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : ''}
+                </span>
+                <span className={s.bullet}>•</span>
+                <span>{getReadingTime(article.content)}</span>
+              </div>
+            </header>
 
-          {article.image_url && (
-            <img src={article.image_url} alt={article.title} className={s.heroImage} />
-          )}
+            {article.image_url && (
+              <img src={article.image_url} alt={article.title} className={s.heroImage} />
+            )}
 
-          <div className={s.content}><Markdown content={article.content} /></div>
-        </article>
+            <div className={s.content}><Markdown content={article.content} /></div>
+          </article>
+
+          <aside className={s.sidebar}>
+            <TableOfContents content={article.content} />
+          </aside>
+        </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

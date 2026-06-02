@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchStats, type Stats } from '../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { fetchStats } from '../lib/api';
 import styles from './RealStats.module.css';
 
 function formatNumber(n: number): string {
@@ -23,24 +23,12 @@ function formatDate(value: string | null | undefined): string {
 }
 
 export default function RealStats() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [error, setError] = useState(false);
+  const { data: stats, isError, isLoading } = useQuery({
+    queryKey: ['stats'],
+    queryFn: fetchStats,
+  });
 
-  useEffect(() => {
-    let active = true;
-    fetchStats()
-      .then((data) => {
-        if (active) setStats(data);
-      })
-      .catch(() => {
-        if (active) setError(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  if (error) {
+  if (isError) {
     return (
       <div className={styles.section}>
         <div className={styles.error}>
@@ -50,7 +38,7 @@ export default function RealStats() {
     );
   }
 
-  if (!stats) {
+  if (isLoading || !stats) {
     return (
       <div className={styles.section}>
         <div className={styles.statsGrid}>

@@ -8,10 +8,22 @@
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem 1.5rem 0;
   box-sizing: border-box;
+}
+
+.layoutWrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 100px;
 }
 
 /* ─── Back Link ────────────────────────────────── */
@@ -254,6 +266,16 @@
 }
 
 /* ─── Responsive Breakpoints ────────────────────── */
+
+@media (max-width: 1024px) {
+  .layoutWrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    display: none;
+  }
+}
 
 @media (max-width: 768px) {
   .glassContainer {

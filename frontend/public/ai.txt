@@ -1,0 +1,24 @@
+# AI Crawler Configuration
+User-agent: GPTBot
+Disallow: /admin
+Allow: /
+
+User-agent: ChatGPT-User
+Disallow: /admin
+Allow: /
+
+User-agent: Google-Extended
+Disallow: /admin
+Allow: /
+
+User-agent: Anthropic-ai
+Disallow: /admin
+Allow: /
+
+User-agent: Claude-Web
+Disallow: /admin
+Allow: /
+
+User-agent: CCBot
+Disallow: /admin
+Allow: /

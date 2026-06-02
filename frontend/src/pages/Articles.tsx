@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchArticles, type Article } from '../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { fetchArticles } from '../lib/api';
 import ScrollReveal from '../components/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import SEO from '../components/SEO';
+import PageTransition from '../components/PageTransition';
 import { EmptyState } from '../components/ui/State';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import s from './Articles.module.css';
@@ -17,28 +19,21 @@ function getReadingTime(content: string | null | undefined): string {
 }
 
 export default function Articles() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useDocumentTitle('Articles | DemonZ Development');
+  const { data: rawArticles = [], isLoading: loading } = useQuery({
+    queryKey: ['articles', category],
+    queryFn: () => fetchArticles(category !== 'all' ? category : undefined),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    fetchArticles(category !== 'all' ? category : undefined)
-      .then((data) => {
-        // Sort articles by published_at or created_at desc to ensure latest is first
-        const sorted = [...data].sort((a, b) => {
-          const dateA = a.published_at ? new Date(a.published_at).getTime() : new Date(a.created_at).getTime();
-          const dateB = b.published_at ? new Date(b.published_at).getTime() : new Date(b.created_at).getTime();
-          return dateB - dateA;
-        });
-        setArticles(sorted);
-      })
-      .catch(() => setArticles([]))
-      .finally(() => setLoading(false));
-  }, [category]);
+  const articles = useMemo(() => {
+    return [...rawArticles].sort((a, b) => {
+      const dateA = a.published_at ? new Date(a.published_at).getTime() : new Date(a.created_at).getTime();
+      const dateB = b.published_at ? new Date(b.published_at).getTime() : new Date(b.created_at).getTime();
+      return dateB - dateA;
+    });
+  }, [rawArticles]);
 
   // Client-side search filtering
   const filteredArticles = articles.filter((article) => {
@@ -56,7 +51,8 @@ export default function Articles() {
   const remainingArticles = filteredArticles.slice(1);
 
   return (
-    <div className={s.page}>
+    <PageTransition className={s.page}>
+      <SEO title="Articles" description="Tutorials, announcements, and insights from the team." />
       <section className={s.hero}>
         <h1 className={s.heroTitle}>Articles</h1>
         <p className={s.heroSub}>Tutorials, announcements, and insights from the team.</p>
@@ -204,7 +200,6 @@ export default function Articles() {
           )}
         </>
       )}
-    </div>
+    </PageTransition>
   );
 }
-

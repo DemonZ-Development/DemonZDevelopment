@@ -1,10 +1,14 @@
 import { Hono } from 'hono';
+import { cache } from 'hono/cache';
 import { supabase } from '../lib/supabase';
 import { sanitize, isValidEmail } from '../lib/sanitize';
 import { checkRateLimit, clientIp } from '../lib/rateLimit';
 import type { Env } from '../types';
 
 const publicRoutes = new Hono<{ Bindings: Env }>();
+
+const cache30s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=30' });
+const cache60s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=60' });
 
 // ---------------------------------------------------------------------------
 // Health
@@ -18,7 +22,7 @@ publicRoutes.get('/health', (c) =>
 // Stats (for Home page real-stats widget)
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/stats', async (c) => {
+publicRoutes.get('/stats', cache60s, async (c) => {
   const [projCount, artCount, comCount, totalDownloads, latestProject, latestArticle] =
     await Promise.all([
       supabase(c.env, 'projects?select=id', { countOnly: true }),
@@ -59,7 +63,7 @@ publicRoutes.get('/stats', async (c) => {
 // Projects
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/projects', async (c) => {
+publicRoutes.get('/projects', cache60s, async (c) => {
   const category = c.req.query('category');
   const search = c.req.query('search');
   const limit = parseInt(c.req.query('limit') || '50', 10);
@@ -88,7 +92,7 @@ publicRoutes.get('/projects', async (c) => {
   return c.json(data);
 });
 
-publicRoutes.get('/projects/:slug', async (c) => {
+publicRoutes.get('/projects/:slug', cache60s, async (c) => {
   const slug = c.req.param('slug');
   const { data, error } = await supabase(
     c.env,
@@ -176,7 +180,7 @@ publicRoutes.get('/projects/download/:slug', async (c) => {
 // Changelogs
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/projects/:slug/changelogs', async (c) => {
+publicRoutes.get('/projects/:slug/changelogs', cache60s, async (c) => {
   const slug = c.req.param('slug');
   const { data: project } = await supabase<{ id: string }>(
     c.env,
@@ -197,7 +201,7 @@ publicRoutes.get('/projects/:slug/changelogs', async (c) => {
 // Comments
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/projects/:slug/comments', async (c) => {
+publicRoutes.get('/projects/:slug/comments', cache30s, async (c) => {
   const slug = c.req.param('slug');
   const { data: project } = await supabase<{ id: string }>(
     c.env,
@@ -264,7 +268,7 @@ publicRoutes.post('/projects/:slug/comments', async (c) => {
 // Articles
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/articles', async (c) => {
+publicRoutes.get('/articles', cache60s, async (c) => {
   const category = c.req.query('category');
   const limit = parseInt(c.req.query('limit') || '50', 10);
   let path = `articles?published=eq.true&order=published_at.desc&limit=${limit}`;
@@ -276,7 +280,7 @@ publicRoutes.get('/articles', async (c) => {
   return c.json(data);
 });
 
-publicRoutes.get('/articles/:slug', async (c) => {
+publicRoutes.get('/articles/:slug', cache60s, async (c) => {
   const slug = c.req.param('slug');
   const { data, error } = await supabase(
     c.env,
@@ -328,7 +332,7 @@ publicRoutes.post('/contact', async (c) => {
 // Search
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/search', async (c) => {
+publicRoutes.get('/search', cache60s, async (c) => {
   const q = c.req.query('q');
   if (!q || q.length < 2) return c.json({ projects: [], articles: [] });
 
