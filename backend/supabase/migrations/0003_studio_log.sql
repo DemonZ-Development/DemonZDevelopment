@@ -17,3 +17,5 @@ create index if not exists studio_log_published_order_idx
   on public.studio_log (published, display_order asc, created_at desc);
 
 alter table public.studio_log enable row level security;
+
+CREATE POLICY "Allow public read on studio_log" ON public.studio_log FOR SELECT TO anon, authenticated USING (true);
