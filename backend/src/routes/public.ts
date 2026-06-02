@@ -348,4 +348,62 @@ publicRoutes.get('/search', cache60s, async (c) => {
   });
 });
 
+// Dynamic XML Sitemap for SEO & Search Engine / AI Crawlers
+publicRoutes.get('/sitemap.xml', async (c) => {
+  const [projectsRes, articlesRes] = await Promise.all([
+    supabase<{ slug: string }>(c.env, 'projects?select=slug&limit=1000'),
+    supabase<{ slug: string }>(c.env, 'articles?published=eq.true&select=slug&limit=1000'),
+  ]);
+
+  const projects = Array.isArray(projectsRes.data) ? projectsRes.data : [];
+  const articles = Array.isArray(articlesRes.data) ? articlesRes.data : [];
+
+  const host = 'https://demonzdevelopment.online';
+  
+  // Base URLs
+  const urls = [
+    { loc: `${host}/`, priority: '1.0', changefreq: 'weekly' },
+    { loc: `${host}/projects`, priority: '0.9', changefreq: 'daily' },
+    { loc: `${host}/articles`, priority: '0.8', changefreq: 'daily' },
+    { loc: `${host}/privacy`, priority: '0.3', changefreq: 'monthly' },
+    { loc: `${host}/terms`, priority: '0.3', changefreq: 'monthly' },
+  ];
+
+  // Dynamic projects
+  projects.forEach((p) => {
+    urls.push({
+      loc: `${host}/projects/${p.slug}`,
+      priority: '0.8',
+      changefreq: 'weekly',
+    });
+  });
+
+  // Dynamic articles
+  articles.forEach((a) => {
+    urls.push({
+      loc: `${host}/articles/${a.slug}`,
+      priority: '0.8',
+      changefreq: 'weekly',
+    });
+  });
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+  .map(
+    (u) => `  <url>
+    <loc>${u.loc}</loc>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`,
+  )
+  .join('\n')}
+</urlset>`;
+
+  return c.text(xml, 200, {
+    'Content-Type': 'application/xml',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
 export default publicRoutes;
