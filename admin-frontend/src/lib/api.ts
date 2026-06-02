@@ -386,3 +386,24 @@ export async function uploadMedia(token: string, file: File): Promise<string> {
   const { url } = (await res.json()) as { url: string };
   return url;
 }
+
+export async function uploadFile(token: string, file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/admin/media/upload-file`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new ApiError(text || 'Upload failed', res.status);
+  }
+
+  const { filePath } = (await res.json()) as { filePath: string };
+  return filePath;
+}
