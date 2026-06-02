@@ -6,13 +6,12 @@ import Markdown from '../components/Markdown';
 import SEO from '../components/SEO';
 import PageTransition from '../components/PageTransition';
 import ChangelogTimeline from '../components/ChangelogTimeline';
-import CommentThread from '../components/CommentThread';
 import { Button } from '../components/ui/Button';
 import { LoadingState, ErrorState } from '../components/ui/State';
 import { DownloadIcon, ArrowRightIcon } from '../components/ui/Icon';
 import styles from './ProjectDetail.module.css';
 
-type TabType = 'overview' | 'changelog' | 'discussion';
+type TabType = 'overview' | 'changelog';
 
 export default function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -76,11 +75,8 @@ export default function ProjectDetail() {
     );
   }
 
-  // Production: when the project has no redirect URL we go through the
-  // /api/projects/download/... endpoint on the API base. In dev the Vite
-  // proxy handles this transparently.
-  const downloadUrl =
-    project.redirect_url || apiUrl(`/projects/download/${project.slug}`);
+  // We always route downloads through the backend tracker to increment download stats.
+  const downloadUrl = apiUrl(`/projects/download/${project.slug}`);
 
   return (
     <PageTransition className={styles.page}>
@@ -149,7 +145,7 @@ export default function ProjectDetail() {
 
         {/* Tabs */}
         <div className={styles.tabs} role="tablist">
-          {(['overview', 'changelog', 'discussion'] as TabType[]).map((t) => (
+          {(['overview', 'changelog'] as TabType[]).map((t) => (
             <button
               key={t}
               role="tab"
@@ -169,7 +165,6 @@ export default function ProjectDetail() {
               <div className={styles.description}><Markdown content={project.description} /></div>
             )}
             {tab === 'changelog' && <ChangelogTimeline projectSlug={project.slug} />}
-            {tab === 'discussion' && <CommentThread projectSlug={project.slug} />}
           </div>
 
           <aside className={styles.sidebar}>
