@@ -44,24 +44,8 @@ export default function RealStats() {
         <div className={styles.statsGrid}>
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className={styles.statCard}>
-              <div
-                style={{
-                  height: 36,
-                  width: '60%',
-                  background: 'var(--color-bg-elevated)',
-                  borderRadius: 4,
-                  opacity: 0.6,
-                }}
-              />
-              <div
-                style={{
-                  height: 12,
-                  width: '40%',
-                  background: 'var(--color-bg-elevated)',
-                  borderRadius: 4,
-                  opacity: 0.6,
-                }}
-              />
+              <div className={`${styles.skeletonBar}`} style={{ height: 30, width: '60%' }} />
+              <div className={`${styles.skeletonBar}`} style={{ height: 10, width: '40%' }} />
             </div>
           ))}
         </div>

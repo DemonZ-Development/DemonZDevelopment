@@ -1,39 +1,50 @@
 /* ============================================================
    DemonZ Development — Design System
-   Premium dark theme with charcoal base and clean blue accent.
+   Warm dark theme. One accent. No decoration for decoration's sake.
    ============================================================ */
 
 /* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ============================================================
    1. CSS Custom Properties
    ============================================================ */
 :root {
-  /* --- Colors: Base --- */
-  --color-bg:          #0a0a0f;
-  --color-bg-raised:   #111118;
-  --color-bg-elevated: #16161f;
-  --color-bg-surface:  #1c1c27;
+  /* --- Colors: Base (warm dark, slight cast) --- */
+  --color-bg:          #0c0b0a;
+  --color-bg-raised:   #131210;
+  --color-bg-elevated: #1a1815;
+  --color-bg-surface:  #1f1d19;
 
   /* --- Colors: Text --- */
-  --color-text:        #9ca3af;
-  --color-text-muted:  #6b7280;
-  --color-text-strong: #f1f5f9;
-  --color-text-white:  #ffffff;
+  --color-text:        #a8a39b;
+  --color-text-muted:  #6b6760;
+  --color-text-strong: #f0ede6;
+  --color-text-white:  #faf8f3;
 
-  /* --- Colors: Accent --- */
-  --color-accent:       #3b82f6;
-  --color-accent-hover: #60a5fa;
-  --color-accent-muted: rgba(59, 130, 246, 0.15);
-  --color-accent-glow:  rgba(59, 130, 246, 0.08);
+  /* --- Colors: Accent (one blue, restrained) --- */
+  --color-accent:        #4b8ef7;
+  --color-accent-hover:  #6ba3ff;
+  --color-accent-muted:  rgba(75, 142, 247, 0.12);
+  --color-accent-glow:   rgba(75, 142, 247, 0.06);
+  --color-accent-soft:   rgba(75, 142, 247, 0.04);
+
+  /* --- Colors: Warm secondary (used sparingly) --- */
+  --color-warm:          #f59e0b;
+  --color-warm-muted:    rgba(245, 158, 11, 0.12);
+  --color-warm-glow:     rgba(245, 158, 11, 0.05);
+
+  /* --- Colors: Status --- */
+  --color-success:       #4ade80;
+  --color-danger:        #f87171;
 
   /* --- Colors: Borders --- */
-  --color-border:       rgba(255, 255, 255, 0.06);
-  --color-border-hover: rgba(255, 255, 255, 0.12);
-  --color-border-accent: rgba(59, 130, 246, 0.3);
+  --color-border:        rgba(240, 237, 230, 0.06);
+  --color-border-hover:  rgba(240, 237, 230, 0.12);
+  --color-border-strong: rgba(240, 237, 230, 0.18);
+  --color-border-accent: rgba(75, 142, 247, 0.25);
 
-  /* --- Aliases & Backward Compatibility --- */
+  /* --- Aliases --- */
   --color-surface:           var(--color-bg-surface);
   --color-surface-elevated:  var(--color-bg-elevated);
   --color-text-secondary:    var(--color-text);
@@ -44,16 +55,16 @@
   --font-mono:    'JetBrains Mono', ui-monospace, Consolas, monospace;
 
   /* --- Font Sizes (fluid scale) --- */
-  --text-xs:   0.75rem;    /* 12px */
-  --text-sm:   0.875rem;   /* 14px */
-  --text-base: 1rem;       /* 16px */
-  --text-lg:   1.125rem;   /* 18px */
-  --text-xl:   1.25rem;    /* 20px */
-  --text-2xl:  1.5rem;     /* 24px */
-  --text-3xl:  1.875rem;   /* 30px */
-  --text-4xl:  2.25rem;    /* 36px */
-  --text-5xl:  3rem;       /* 48px */
-  --text-6xl:  3.75rem;    /* 60px */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+  --text-6xl:  3.75rem;
 
   /* --- Font Weights --- */
   --weight-light:    300;
@@ -71,45 +82,38 @@
   --leading-relaxed: 1.65;
 
   /* --- Spacing Scale --- */
-  --space-1:  0.25rem;   /* 4px */
-  --space-2:  0.5rem;    /* 8px */
-  --space-3:  0.75rem;   /* 12px */
-  --space-4:  1rem;      /* 16px */
-  --space-5:  1.25rem;   /* 20px */
-  --space-6:  1.5rem;    /* 24px */
-  --space-8:  2rem;      /* 32px */
-  --space-10: 2.5rem;    /* 40px */
-  --space-12: 3rem;      /* 48px */
-  --space-16: 4rem;      /* 64px */
-  --space-20: 5rem;      /* 80px */
-  --space-24: 6rem;      /* 96px */
-  --space-32: 8rem;      /* 128px */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
 
   /* --- Border Radius --- */
-  --radius-sm:   0.375rem;  /* 6px */
-  --radius-md:   0.5rem;    /* 8px */
-  --radius-lg:   0.75rem;   /* 12px */
-  --radius-xl:   1rem;      /* 16px */
-  --radius-2xl:  1.5rem;    /* 24px */
+  --radius-sm:   0.375rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-2xl:  1.5rem;
   --radius-full: 9999px;
 
-  /* --- Shadows --- */
+  /* --- Shadows (subtle, never glowy) --- */
   --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-xl:   0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
-
-  /* --- Glassmorphism --- */
-  --glass-bg:     rgba(22, 22, 31, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-blur:   16px;
+  --shadow-md:   0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-xl:   0 16px 48px rgba(0, 0, 0, 0.5);
 
   /* --- Transitions --- */
   --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base:   200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow:   400ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* --- Z-index Scale --- */
   --z-base:    1;
@@ -120,9 +124,9 @@
   --z-top:     1000;
 
   /* --- Layout --- */
-  --container-max: 1200px;
+  --container-max: 1180px;
   --container-padding: var(--space-6);
-  --nav-height: 72px;
+  --nav-height: 68px;
 }
 
 
@@ -273,7 +277,6 @@ code {
    4. Utility Classes
    ============================================================ */
 
-/* --- Container --- */
 .container {
   width: 100%;
   max-width: var(--container-max);
@@ -281,7 +284,6 @@ code {
   padding-inline: var(--container-padding);
 }
 
-/* --- Section Spacing --- */
 .section {
   padding-block: var(--space-20);
 }
@@ -294,12 +296,11 @@ code {
   padding-block: var(--space-32);
 }
 
-/* --- Text --- */
 .text-accent  { color: var(--color-accent); }
+.text-warm    { color: var(--color-warm); }
 .text-muted   { color: var(--color-text-muted); }
 .text-strong  { color: var(--color-text-strong); }
 .text-center  { text-align: center; }
-.text-balance { text-wrap: balance; }
 
 /* --- Flex Utilities --- */
 .flex         { display: flex; }
@@ -314,7 +315,6 @@ code {
 .gap-6  { gap: var(--space-6); }
 .gap-8  { gap: var(--space-8); }
 
-/* --- Grid --- */
 .grid {
   display: grid;
   gap: var(--space-6);
@@ -328,37 +328,17 @@ code {
   grid-template-columns: repeat(3, 1fr);
 }
 
-/* --- Glass Card --- */
-.glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
-}
-
-.glass-card:hover {
-  border-color: var(--color-border-hover);
-  box-shadow: var(--shadow-glow);
-}
-
-/* --- Solid Card --- */
+/* --- Card (solid, no glass, no glow) --- */
 .card {
   background: var(--color-bg-raised);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8);
-  transition: border-color var(--transition-base),
-              transform var(--transition-base),
-              box-shadow var(--transition-base);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: border-color var(--transition-base);
 }
 
 .card:hover {
   border-color: var(--color-border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* --- Buttons --- */
@@ -367,28 +347,30 @@ code {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
+  padding: var(--space-3) var(--space-5);
   font-family: var(--font-body);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   line-height: var(--leading-none);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast);
   white-space: nowrap;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .btn-primary {
   background: var(--color-accent);
   color: var(--color-text-white);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-accent);
 }
 
 .btn-primary:hover {
   background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
   color: var(--color-text-white);
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-1px);
 }
 
 .btn-ghost {
@@ -400,44 +382,14 @@ code {
 .btn-ghost:hover {
   color: var(--color-text-strong);
   border-color: var(--color-border-hover);
-  background: var(--color-accent-glow);
-}
-
-/* --- Badge --- */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: var(--radius-full);
-  background: var(--color-accent-muted);
-  color: var(--color-accent);
-  border: 1px solid var(--color-border-accent);
+  background: var(--color-accent-soft);
 }
 
 /* --- Divider --- */
 .divider {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-border) 20%,
-    var(--color-border) 80%,
-    transparent
-  );
+  background: var(--color-border);
   border: none;
-}
-
-/* --- Gradient Text --- */
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-text-white) 0%, var(--color-accent) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* --- Visually Hidden (Accessibility) --- */
@@ -458,62 +410,25 @@ code {
    5. Animation Keyframes
    ============================================================ */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideLeft {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
   }
 }
 
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;
@@ -521,31 +436,21 @@ code {
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
 @keyframes dzd-spin {
   to { transform: rotate(360deg); }
 }
 
-/* --- Animation Utility Classes --- */
-.animate-fade-in   { animation: fadeIn 0.6s var(--transition-base) both; }
-.animate-slide-up  { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) both; }
-.animate-scale-in  { animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-fade-in   { animation: fadeIn 0.4s var(--transition-base) both; }
+.animate-slide-up  { animation: slideUp 0.4s var(--transition-base) both; }
+.animate-scale-in  { animation: scaleIn 0.3s var(--transition-base) both; }
 
 
 /* ============================================================
    6. Scrollbar Styling
    ============================================================ */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -559,7 +464,7 @@ code {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
+  background: var(--color-bg-elevated);
 }
 
 /* Firefox */
@@ -572,12 +477,10 @@ code {
 /* ============================================================
    7. Responsive Breakpoints
    ============================================================ */
-
-/* Tablet (768px) */
 @media (max-width: 768px) {
   :root {
     --container-padding: var(--space-4);
-    --nav-height: 64px;
+    --nav-height: 60px;
   }
 
   .section {
@@ -598,20 +501,13 @@ code {
   }
 }
 
-/* Mobile (480px) */
 @media (max-width: 480px) {
-  :root {
-    --container-padding: var(--space-4);
-  }
-
-  .glass-card,
   .card {
-    padding: var(--space-6);
-    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
   }
 }
 
-/* Reduce Motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -623,7 +519,6 @@ code {
   }
 }
 
-/* Ensure the main page content sits above the fixed background canvas */
 .main-content {
   position: relative;
   z-index: 1;
