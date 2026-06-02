@@ -168,7 +168,7 @@ export default function Navbar() {
             width: 32,
             height: 32,
             position: 'relative',
-            zIndex: 'var(--z-top)',
+            zIndex: 9999,
             background: 'transparent',
             border: 'none',
           }}
@@ -206,54 +206,58 @@ export default function Navbar() {
         </button>
 
         {/* Mobile Menu Overlay */}
-        <div
-          id="mobile-menu"
-          className="nav-mobile-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Site navigation"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(10, 10, 15, 0.95)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            zIndex: 'var(--z-nav)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 'var(--space-2)',
-            opacity: isOpen ? 1 : 0,
-            visibility: isOpen ? 'visible' : 'hidden',
-            transition: 'opacity var(--transition-base), visibility var(--transition-base)',
-          }}
-        >
-          {NAV_LINKS.map(({ label, path }) => (
-            <NavLink
-              key={path}
-              to={path}
-              end={path === '/'}
-              onClick={() => setIsOpen(false)}
-              style={({ isActive }) => ({
-                fontSize: 'var(--text-2xl)',
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 'var(--weight-semibold)',
-                color: isActive
-                  ? 'var(--color-accent)'
-                  : 'var(--color-text-strong)',
-                padding: 'var(--space-3) var(--space-8)',
-                borderRadius: 'var(--radius-lg)',
-                transition: 'none',
-                transform: 'none',
-                opacity: 1,
-                textDecoration: 'none',
-              })}
-            >
-              {label}
-            </NavLink>
-          ))}
-        </div>
+        {isOpen && (
+          <div
+            id="mobile-menu"
+            className="nav-mobile-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site navigation"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(8, 8, 14, 0.98)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              zIndex: 9998,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 'var(--space-2)',
+            }}
+          >
+            {NAV_LINKS.map(({ label, path }) => (
+              <NavLink
+                key={path}
+                to={path}
+                end={path === '/'}
+                onClick={() => setIsOpen(false)}
+                style={({ isActive }) => ({
+                  fontSize: 'var(--text-2xl)',
+                  fontFamily: 'var(--font-heading)',
+                  fontWeight: 'var(--weight-semibold)',
+                  color: isActive
+                    ? 'var(--color-accent)'
+                    : 'var(--color-text-strong)',
+                  padding: 'var(--space-3) var(--space-8)',
+                  borderRadius: 'var(--radius-lg)',
+                  transition: 'none',
+                  transform: 'none',
+                  opacity: 1,
+                  textDecoration: 'none',
+                })}
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        )}
       </nav>
 
       {/* Responsive styles */}

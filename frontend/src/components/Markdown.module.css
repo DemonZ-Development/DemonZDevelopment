@@ -21,8 +21,8 @@
   font-size: 1.75rem;
   font-weight: var(--weight-semibold);
   color: var(--color-text-strong);
-  margin-top: 2.5rem;
-  margin-bottom: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
   letter-spacing: -0.3px;
 }
 
@@ -31,8 +31,8 @@
   font-size: 1.4rem;
   font-weight: var(--weight-semibold);
   color: var(--color-text-strong);
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
   letter-spacing: -0.2px;
 }
 
@@ -88,6 +88,10 @@
 .listItem {
   margin-bottom: 0.5rem;
   line-height: 1.6;
+}
+
+.listItem > p:first-child {
+  display: inline;
 }
 
 .listItem p {
@@ -196,9 +200,9 @@
 .tableWrapper {
   overflow-x: auto;
   margin-bottom: 1.5rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
-  background: var(--color-bg-raised);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .table {
@@ -208,17 +212,19 @@
 }
 
 .th {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   font-weight: var(--weight-semibold);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-elevated);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--color-text-strong);
+  font-size: 0.95rem;
 }
 
 .td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--color-text-secondary);
+  font-size: 0.95rem;
 }
 
 .table tr:last-child .td {
