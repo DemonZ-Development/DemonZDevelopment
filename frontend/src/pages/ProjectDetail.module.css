@@ -195,7 +195,6 @@
   line-height: 1.8;
   color: var(--color-text-secondary);
   font-size: 1.05rem;
-  white-space: pre-wrap;
 }
 
 .error {
