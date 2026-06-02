@@ -57,9 +57,9 @@ export default function Projects() {
       const q = search.toLowerCase();
       result = result.filter(
         (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.tagline.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
+          p.name?.toLowerCase().includes(q) ||
+          p.tagline?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q)
       );
     }
 
