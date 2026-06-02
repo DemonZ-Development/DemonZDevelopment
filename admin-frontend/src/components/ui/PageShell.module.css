@@ -1,0 +1,11 @@
+.shell {
+  min-height: 100vh;
+  padding-top: var(--nav-height);
+}
+
+.content {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-padding) var(--space-20);
+}
