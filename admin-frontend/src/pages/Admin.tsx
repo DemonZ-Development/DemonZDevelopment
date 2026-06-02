@@ -19,6 +19,7 @@ import {
   CommentDetailModal,
   MessageDetailModal,
 } from '../components/admin/DetailModals';
+import { ChangelogFormModal } from '../components/admin/ChangelogFormModal';
 import { ToastProvider } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
 import {
@@ -145,6 +146,7 @@ function AdminDashboard({
   const [articleForm, setArticleForm] = useState<ArticleFormTarget | null>(null);
   const [viewComment, setViewComment] = useState<AdminComment | null>(null);
   const [viewMessage, setViewMessage] = useState<AdminMessage | null>(null);
+  const [changelogProject, setChangelogProject] = useState<AdminProject | null>(null);
 
   // Fetch stats once on mount.
   useEffect(() => {
@@ -456,6 +458,7 @@ function AdminDashboard({
             onDelete={(p) =>
               setDeleteTarget({ kind: 'project', id: p.id, name: p.name })
             }
+            onManageChangelog={(p) => setChangelogProject(p)}
           />
         ) : tab === 'articles' ? (
           <ArticlesTable
@@ -504,6 +507,15 @@ function AdminDashboard({
         />
       )}
 
+      {changelogProject && (
+        <ChangelogFormModal
+          open={changelogProject !== null}
+          token={token}
+          project={changelogProject}
+          onClose={() => setChangelogProject(null)}
+        />
+      )}
+
       {articleForm && (
         <ArticleFormModal
           open={articleForm !== null}
@@ -544,10 +556,12 @@ function ProjectsTable({
   projects,
   onEdit,
   onDelete,
+  onManageChangelog,
 }: {
   projects: AdminProject[];
   onEdit: (p: AdminProject) => void;
   onDelete: (p: AdminProject) => void;
+  onManageChangelog: (p: AdminProject) => void;
 }) {
   if (projects.length === 0) {
     return <EmptyState title="No projects" description="No matching projects." />;
@@ -588,6 +602,9 @@ function ProjectsTable({
               </td>
               <td className={styles.actionsCol}>
                 <div className={styles.actions}>
+                  <Button size="small" variant="ghost" onClick={() => onManageChangelog(p)}>
+                    📝 Changelog
+                  </Button>
                   <Button size="small" variant="ghost" onClick={() => onEdit(p)}>
                     <EditIcon size={12} /> Edit
                   </Button>
