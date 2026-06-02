@@ -53,6 +53,15 @@ adminRoutes.use('/messages', adminAuth);
 adminRoutes.use('/messages/*', adminAuth);
 
 // Projects CRUD
+adminRoutes.get('/projects', async (c) => {
+  const { data, error } = await supabase(
+    c.env,
+    'projects?select=*&order=updated_at.desc',
+  );
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data);
+});
+
 adminRoutes.post('/projects', async (c) => {
   const body = await c.req.json();
   const { data, error } = await supabase(c.env, 'projects', { method: 'POST', body });

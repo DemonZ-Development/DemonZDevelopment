@@ -19,7 +19,7 @@ const STATIC_PAGES: SearchResult[] = [
   { type: 'page', title: 'Admin Dashboard', path: '/admin' },
 ];
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://dzd-api.demonzdevelopment.workers.dev/api';
 
 const s: Record<string, React.CSSProperties> = {
   overlay: {
