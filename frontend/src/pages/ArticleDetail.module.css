@@ -1,0 +1,285 @@
+.page {
+  min-height: 100vh;
+  padding-top: var(--nav-height);
+  padding-bottom: 5rem;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 0;
+  box-sizing: border-box;
+}
+
+/* ─── Back Link ────────────────────────────────── */
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.backLink:hover {
+  color: var(--color-accent-hover);
+  transform: translateX(-3px);
+}
+
+/* ─── Premium Glassmorphic Container ────────────── */
+
+.glassContainer {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 3rem;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  box-sizing: border-box;
+}
+
+.glassContainer:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+}
+
+/* ─── Header & Meta ────────────────────────────── */
+
+.header {
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-accent);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: var(--weight-extrabold);
+  color: var(--color-text-strong);
+  line-height: 1.25;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.bullet {
+  color: var(--color-border-hover);
+}
+
+.heroImage {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2.5rem;
+  max-height: 450px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+
+/* ─── Markdown Content & Typography ─────────────── */
+
+.content {
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  font-size: 1.05rem;
+}
+
+.h2 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: -0.3px;
+}
+
+.h3 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.2px;
+}
+
+.paragraph {
+  margin-bottom: 1.5rem;
+}
+
+.bold {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+}
+
+.link {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--color-border-accent);
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--color-accent-hover);
+  border-bottom-style: solid;
+  border-bottom-color: var(--color-accent-hover);
+}
+
+/* --- Blockquotes --- */
+.blockquote {
+  margin: 0 0 1.5rem 0;
+  padding: 0.75rem 1.5rem;
+  border-left: 4px solid var(--color-accent);
+  background: var(--color-bg-raised);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-style: italic;
+  color: var(--color-text-strong);
+}
+
+.blockquote p {
+  margin: 0;
+}
+
+/* --- Lists --- */
+.listUl {
+  list-style-type: disc;
+  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.listOl {
+  list-style-type: decimal;
+  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.listItem {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* --- Code Formatting --- */
+.codeBlock {
+  display: block;
+  padding: 1.25rem;
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.925rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  white-space: pre;
+  color: var(--color-accent-hover);
+}
+
+.inlineCode {
+  padding: 0.15em 0.4em;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  color: var(--color-accent-hover);
+}
+
+/* ─── Loading & Error States ────────────────────── */
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.error {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: var(--color-text-secondary);
+}
+
+.errorTitle {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: var(--weight-bold);
+  color: var(--color-text-strong);
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Responsive Breakpoints ────────────────────── */
+
+@media (max-width: 768px) {
+  .glassContainer {
+    padding: 2rem 1.5rem;
+    border-radius: var(--radius-lg);
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .heroImage {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1.5rem 1rem 0;
+  }
+  
+  .glassContainer {
+    padding: 1.5rem 1rem;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+}

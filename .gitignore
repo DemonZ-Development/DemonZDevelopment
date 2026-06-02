@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+
+# Cloudflare Workers
+.wrangler/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.local
+.env.*.local
+
+# coverage
+coverage/
+
+# typescript build info
+*.tsbuildinfo
+
+# misc
+.cache/
+.tmp/
