@@ -29,10 +29,13 @@ export default function Navbar() {
   /* Lock body scroll when mobile menu is open */
   useEffect(() => {
     if (isOpen) {
-      const previous = document.body.style.overflow;
+      const previousBodyOverflow = document.body.style.overflow;
+      const previousHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       return () => {
-        document.body.style.overflow = previous;
+        document.body.style.overflow = previousBodyOverflow;
+        document.documentElement.style.overflow = previousHtmlOverflow;
       };
     }
     return undefined;
@@ -52,13 +55,14 @@ export default function Navbar() {
         top: 0,
         left: 0,
         right: 0,
-        zIndex: 'var(--z-nav)',
-        height: 'var(--nav-height)',
-        transition: 'background var(--transition-base), border-color var(--transition-base)',
-        background: scrolled ? 'rgba(10, 10, 15, 0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(16px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
-        borderBottom: scrolled ? '1px solid var(--color-border)' : '1px solid transparent',
+        zIndex: isOpen ? 9999 : 'var(--z-nav)',
+        height: isOpen ? '100vh' : 'var(--nav-height)',
+        transition: 'background var(--transition-base), border-color var(--transition-base), height var(--transition-base)',
+        background: isOpen ? '#0a0a0f' : (scrolled ? 'rgba(10, 10, 15, 0.85)' : 'transparent'),
+        backdropFilter: isOpen ? 'none' : (scrolled ? 'blur(16px)' : 'none'),
+        WebkitBackdropFilter: isOpen ? 'none' : (scrolled ? 'blur(16px)' : 'none'),
+        borderBottom: isOpen ? 'none' : (scrolled ? '1px solid var(--color-border)' : '1px solid transparent'),
+        overflow: isOpen ? 'hidden' : 'visible',
       }}
     >
       <nav
@@ -214,22 +218,17 @@ export default function Navbar() {
             aria-modal="true"
             aria-label="Site navigation"
             style={{
-              position: 'fixed',
-              top: 0,
+              position: 'absolute',
+              top: 'var(--nav-height)',
               left: 0,
               right: 0,
               bottom: 0,
-              width: '100vw',
-              height: '100vh',
-              background: 'rgba(8, 8, 14, 0.98)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              zIndex: 9998,
+              background: 'transparent',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 'var(--space-2)',
+              gap: 'var(--space-4)',
             }}
           >
             {NAV_LINKS.map(({ label, path }) => (

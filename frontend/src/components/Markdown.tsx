@@ -36,7 +36,28 @@ export default function Markdown({ content }: MarkdownProps) {
             );
           },
           a: ({ node, ...props }) => <a className={s.link} target="_blank" rel="noopener noreferrer" {...props} />,
-          img: ({ node, ...props }) => <img className={s.contentImage} loading="lazy" {...props} />,
+          img: ({ node, ...props }) => {
+            const widthVal = props.width ? parseInt(String(props.width), 10) : null;
+            const isSmallIcon = widthVal && widthVal < 150;
+            return (
+              <img
+                className={s.contentImage}
+                style={{
+                  width: props.width ? (isNaN(Number(props.width)) ? props.width : `${props.width}px`) : undefined,
+                  height: props.height ? (isNaN(Number(props.height)) ? props.height : `${props.height}px`) : undefined,
+                  ...(isSmallIcon ? {
+                    border: 'none',
+                    boxShadow: 'none',
+                    borderRadius: 0,
+                    margin: '0.5rem 0',
+                    display: 'inline-block',
+                  } : {}),
+                }}
+                loading="lazy"
+                {...props}
+              />
+            );
+          },
           hr: ({ node, ...props }) => <hr className={s.hr} {...props} />,
           table: ({ node, ...props }) => <div className={s.tableWrapper}><table className={s.table} {...props} /></div>,
           thead: ({ node, ...props }) => <thead className={s.thead} {...props} />,
