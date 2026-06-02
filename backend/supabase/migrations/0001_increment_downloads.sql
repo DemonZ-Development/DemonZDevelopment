@@ -7,6 +7,7 @@
 create or replace function increment_downloads(project_slug text)
 returns void
 language sql
+security definer
 as $$
   update projects
      set downloads = coalesce(downloads, 0) + 1
