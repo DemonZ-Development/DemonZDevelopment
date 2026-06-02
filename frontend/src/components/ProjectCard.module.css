@@ -6,6 +6,27 @@
   display: flex;
   flex-direction: column;
   transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(59, 130, 246, 0.15),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 1;
+}
+
+.card:hover .glow {
+  opacity: 1;
 }
 
 .card:hover {
@@ -38,19 +59,18 @@
 }
 
 .categoryBadge {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  display: inline-block;
+  width: fit-content;
+  margin-bottom: 0.5rem;
   padding: 0.25rem 0.625rem;
   border-radius: 6px;
   font-family: 'Inter', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   background: rgba(59, 130, 246, 0.15);
   color: var(--color-accent);
-  backdrop-filter: blur(8px);
 }
 
 .body {
@@ -116,6 +136,11 @@
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: #fff;
+}
+
+.imageWrap, .body, .footer {
+  position: relative;
+  z-index: 2;
 }
 
 /* Skeleton */

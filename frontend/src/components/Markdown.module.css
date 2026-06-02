@@ -2,6 +2,8 @@
   color: var(--color-text-secondary);
   line-height: 1.8;
   font-size: 1.05rem;
+  overflow-wrap: anywhere;
+  word-wrap: break-word;
 }
 
 .h1 {
@@ -87,6 +89,66 @@
   line-height: 1.6;
 }
 
+.listItem p {
+  margin-bottom: 0;
+}
+
+.content :global(.markdown-alert) {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-left: 4px solid var(--color-border);
+  background: var(--color-bg-raised);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.content :global(.markdown-alert-title) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: capitalize;
+}
+
+.content :global(.markdown-alert) p:last-child {
+  margin-bottom: 0;
+}
+
+.content :global(.markdown-alert-note) {
+  border-left-color: var(--color-accent);
+}
+.content :global(.markdown-alert-note .markdown-alert-title) {
+  color: var(--color-accent);
+}
+
+.content :global(.markdown-alert-important) {
+  border-left-color: #a855f7;
+}
+.content :global(.markdown-alert-important .markdown-alert-title) {
+  color: #a855f7;
+}
+
+.content :global(.markdown-alert-warning) {
+  border-left-color: #f59e0b;
+}
+.content :global(.markdown-alert-warning .markdown-alert-title) {
+  color: #f59e0b;
+}
+
+.content :global(.markdown-alert-caution) {
+  border-left-color: #ef4444;
+}
+.content :global(.markdown-alert-caution .markdown-alert-title) {
+  color: #ef4444;
+}
+
+.content :global(.markdown-alert-tip) {
+  border-left-color: #10b981;
+}
+.content :global(.markdown-alert-tip .markdown-alert-title) {
+  color: #10b981;
+}
+
 .codeBlock {
   display: block;
   padding: 1.25rem;
@@ -97,7 +159,8 @@
   font-size: 0.925rem;
   overflow-x: auto;
   margin-bottom: 1.5rem;
-  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: break-word;
   color: var(--color-accent-hover);
 }
 

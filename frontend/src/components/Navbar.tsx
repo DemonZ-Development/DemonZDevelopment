@@ -164,44 +164,43 @@ export default function Navbar() {
             display: 'none',
             flexDirection: 'column',
             justifyContent: 'center',
-            gap: '5px',
+            gap: '6px',
             width: 32,
             height: 32,
             position: 'relative',
             zIndex: 'var(--z-top)',
+            background: 'transparent',
+            border: 'none',
           }}
         >
           <span
             style={{
               display: 'block',
-              width: 20,
+              width: 24,
               height: 2,
               backgroundColor: 'var(--color-text-strong)',
-              borderRadius: 2,
-              transition: 'transform var(--transition-base), opacity var(--transition-fast)',
-              transform: isOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none',
+              transition: 'transform 0.2s',
+              transform: isOpen ? 'translateY(8px) rotate(45deg)' : 'none',
             }}
           />
           <span
             style={{
               display: 'block',
-              width: 20,
+              width: 24,
               height: 2,
               backgroundColor: 'var(--color-text-strong)',
-              borderRadius: 2,
-              transition: 'opacity var(--transition-fast)',
+              transition: 'opacity 0.2s',
               opacity: isOpen ? 0 : 1,
             }}
           />
           <span
             style={{
               display: 'block',
-              width: 20,
+              width: 24,
               height: 2,
               backgroundColor: 'var(--color-text-strong)',
-              borderRadius: 2,
-              transition: 'transform var(--transition-base), opacity var(--transition-fast)',
-              transform: isOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none',
+              transition: 'transform 0.2s',
+              transform: isOpen ? 'translateY(-8px) rotate(-45deg)' : 'none',
             }}
           />
         </button>
@@ -230,7 +229,7 @@ export default function Navbar() {
             transition: 'opacity var(--transition-base), visibility var(--transition-base)',
           }}
         >
-          {NAV_LINKS.map(({ label, path }, i) => (
+          {NAV_LINKS.map(({ label, path }) => (
             <NavLink
               key={path}
               to={path}
@@ -245,10 +244,9 @@ export default function Navbar() {
                   : 'var(--color-text-strong)',
                 padding: 'var(--space-3) var(--space-8)',
                 borderRadius: 'var(--radius-lg)',
-                transition: 'color var(--transition-fast), transform var(--transition-base)',
-                transform: isOpen ? 'translateY(0)' : 'translateY(16px)',
-                transitionDelay: isOpen ? `${i * 50}ms` : '0ms',
-                opacity: isOpen ? 1 : 0,
+                transition: 'none',
+                transform: 'none',
+                opacity: 1,
                 textDecoration: 'none',
               })}
             >

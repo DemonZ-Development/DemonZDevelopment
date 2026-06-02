@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import ScrollReveal from '../components/ScrollReveal';
 import LiveOpsDashboard from '../components/LiveOpsDashboard';
 import RealStats from '../components/RealStats';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import SEO from '../components/SEO';
+import PageTransition from '../components/PageTransition';
 import {
   CodeIcon,
   PackageIcon,
@@ -27,7 +28,6 @@ function DZDLogo() {
 }
 
 export default function Home() {
-  useDocumentTitle('DemonZ Development — Open Source & Game Systems');
 
   const handleScrollToTelemetry = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -52,7 +52,8 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <PageTransition>
+      <SEO />
       {/* Hero */}
       <section className={styles.hero}>
         <DZDLogo />
@@ -196,6 +197,6 @@ export default function Home() {
           </SpotlightCard>
         </section>
       </ScrollReveal>
-    </>
+    </PageTransition>
   );
 }

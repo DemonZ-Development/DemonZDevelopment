@@ -3,7 +3,7 @@ import { lazy, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import MatrixBackground from './components/MatrixBackground';
-import CommandPalette from './components/CommandPalette';
+
 import ScrollToTop from './components/ScrollToTop';
 import { LoadingState } from './components/ui/State';
 
@@ -55,7 +55,7 @@ function App() {
       <SkipLink />
       <ScrollToTop />
       <MatrixBackground />
-      <CommandPalette />
+
       <Navbar />
       <main id="main-content" className="main-content">
         <Suspense fallback={<PageLoader />}>

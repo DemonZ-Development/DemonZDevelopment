@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchProject, apiUrl, type Project } from '../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProject, apiUrl } from '../lib/api';
 import Markdown from '../components/Markdown';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import SEO from '../components/SEO';
+import PageTransition from '../components/PageTransition';
 import ChangelogTimeline from '../components/ChangelogTimeline';
 import CommentThread from '../components/CommentThread';
 import { Button } from '../components/ui/Button';
@@ -14,26 +16,13 @@ type TabType = 'overview' | 'changelog' | 'discussion';
 
 export default function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [tab, setTab] = useState<TabType>('overview');
 
-  useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    fetchProject(slug)
-      .then((data) => {
-        setProject(data);
-        setError(false);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [slug]);
-
-  useDocumentTitle(
-    project ? `${project.name} | DemonZ Development` : 'Project | DemonZ Development',
-  );
+  const { data: project, isLoading: loading, isError: error } = useQuery({
+    queryKey: ['project', slug],
+    queryFn: () => fetchProject(slug!),
+    enabled: !!slug,
+  });
 
   // Per-project structured data (SoftwareApplication). Only rendered once
   // we have the project loaded.
@@ -57,17 +46,17 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className={styles.page}>
+      <PageTransition className={styles.page}>
         <div className={styles.container} style={{ minHeight: 400, display: 'flex', alignItems: 'center' }}>
           <LoadingState label="Loading project" />
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   if (error || !project) {
     return (
-      <div className={styles.page}>
+      <PageTransition className={styles.page}>
         <div className={styles.container}>
           <ErrorState
             title="Project Not Found"
@@ -83,7 +72,7 @@ export default function ProjectDetail() {
             </Link>
           </div>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
@@ -94,7 +83,13 @@ export default function ProjectDetail() {
     project.redirect_url || apiUrl(`/projects/download/${project.slug}`);
 
   return (
-    <div className={styles.page}>
+    <PageTransition className={styles.page}>
+      <SEO 
+        title={project.name}
+        description={project.tagline}
+        image={project.image_url || undefined}
+        url={`https://demonzdevelopment.online/projects/${project.slug}`}
+      />
       {projectJsonLd && (
         <script
           type="application/ld+json"
@@ -208,6 +203,6 @@ export default function ProjectDetail() {
           </aside>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

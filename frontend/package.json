@@ -13,12 +13,17 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.100.14",
+    "framer-motion": "^12.40.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-helmet-async": "^3.0.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.16.0",
     "rehype-raw": "^7.0.0",
-    "remark-gfm": "^4.0.1"
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-github-alerts": "^0.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
