@@ -576,7 +576,7 @@ function ProjectsTable({
                   {p.category}
                 </span>
               </td>
-              <td>{p.downloads.toLocaleString()}</td>
+              <td>{(p.downloads ?? 0).toLocaleString()}</td>
               <td>
                 {p.is_featured ? (
                   <span className={`${styles.tag} ${styles.tagSuccess}`}>
