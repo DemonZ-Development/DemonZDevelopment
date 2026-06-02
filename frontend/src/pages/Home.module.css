@@ -31,14 +31,6 @@
   color: var(--color-text-muted);
 }
 
-.eyebrowMark {
-  width: 6px;
-  height: 6px;
-  background: var(--color-warm);
-  border-radius: 50%;
-  display: inline-block;
-}
-
 .heroHeading {
   font-family: var(--font-heading);
   font-size: clamp(2.5rem, 5.5vw, 4.25rem);
