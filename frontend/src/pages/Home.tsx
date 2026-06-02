@@ -41,7 +41,6 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <p className={styles.eyebrow}>
-            <span className={styles.eyebrowMark} aria-hidden="true" />
             DemonZ Development · since 2021
           </p>
           <h1 className={styles.heroHeading}>
