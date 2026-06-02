@@ -38,6 +38,9 @@ export default function Markdown({ content }: MarkdownProps) {
           a: ({ ...props }) => <a className={s.link} target="_blank" rel="noopener noreferrer" {...props} />,
           img: ({ ...props }) => <img className={s.contentImage} loading="lazy" {...props} />,
           hr: ({ ...props }) => <hr className={s.hr} {...props} />,
+          table: ({ ...props }) => <div className={s.tableWrapper}><table className={s.table} {...props} /></div>,
+          th: ({ ...props }) => <th className={s.th} {...props} />,
+          td: ({ ...props }) => <td className={s.td} {...props} />,
         }}
       >
         {content}
