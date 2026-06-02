@@ -11,12 +11,23 @@ const app = new Hono<{ Bindings: Env }>();
 // ---------------------------------------------------------------------------
 
 app.use('*', async (c, next) => {
-  const origins = [c.env.CORS_ORIGIN];
+  const origins = [
+    c.env.CORS_ORIGIN,
+    'https://demonzdevelopment.online',
+    'https://demonz-public.pages.dev',
+    'https://demonz-admin.pages.dev'
+  ];
+
   if (c.env.DEV === 'true' || c.env.DEV === '1') {
     origins.push('http://localhost:5173');
+    origins.push('http://localhost:5174');
   }
+
+  // Filter out duplicate or empty values
+  const uniqueOrigins = Array.from(new Set(origins.filter((o): o is string => !!o)));
+
   const corsMiddleware = cors({
-    origin: origins,
+    origin: uniqueOrigins,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     maxAge: 86400,
