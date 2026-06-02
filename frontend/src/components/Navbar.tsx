@@ -65,13 +65,15 @@ export default function Navbar() {
         overflow: isOpen ? 'hidden' : 'visible',
       }}
     >
-      <nav
+      <div
         className="container"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          height: '100%',
+          height: 'var(--nav-height)',
+          width: '100%',
+          flexShrink: 0,
         }}
       >
         {/* Logo */}
@@ -208,56 +210,54 @@ export default function Navbar() {
             }}
           />
         </button>
+      </div>
 
-        {/* Mobile Menu Overlay */}
-        {isOpen && (
-          <div
-            id="mobile-menu"
-            className="nav-mobile-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Site navigation"
-            style={{
-              position: 'absolute',
-              top: 'var(--nav-height)',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'transparent',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 'var(--space-4)',
-            }}
-          >
-            {NAV_LINKS.map(({ label, path }) => (
-              <NavLink
-                key={path}
-                to={path}
-                end={path === '/'}
-                onClick={() => setIsOpen(false)}
-                style={({ isActive }) => ({
-                  fontSize: 'var(--text-2xl)',
-                  fontFamily: 'var(--font-heading)',
-                  fontWeight: 'var(--weight-semibold)',
-                  color: isActive
-                    ? 'var(--color-accent)'
-                    : 'var(--color-text-strong)',
-                  padding: 'var(--space-3) var(--space-8)',
-                  borderRadius: 'var(--radius-lg)',
-                  transition: 'none',
-                  transform: 'none',
-                  opacity: 1,
-                  textDecoration: 'none',
-                })}
-              >
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        )}
-      </nav>
+      {/* Mobile Menu Overlay */}
+      {isOpen && (
+        <div
+          id="mobile-menu"
+          className="nav-mobile-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site navigation"
+          style={{
+            flex: 1,
+            width: '100%',
+            background: 'transparent',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 'var(--space-4)',
+            paddingBottom: 'var(--space-12)',
+          }}
+        >
+          {NAV_LINKS.map(({ label, path }) => (
+            <NavLink
+              key={path}
+              to={path}
+              end={path === '/'}
+              onClick={() => setIsOpen(false)}
+              style={({ isActive }) => ({
+                fontSize: 'var(--text-2xl)',
+                fontFamily: 'var(--font-heading)',
+                fontWeight: 'var(--weight-semibold)',
+                color: isActive
+                  ? 'var(--color-accent)'
+                  : 'var(--color-text-strong)',
+                padding: 'var(--space-3) var(--space-8)',
+                borderRadius: 'var(--radius-lg)',
+                transition: 'none',
+                transform: 'none',
+                opacity: 1,
+                textDecoration: 'none',
+              })}
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
+      )}
 
       {/* Responsive styles */}
       <style>{`
