@@ -1,46 +1,38 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ScrollReveal from '../components/ScrollReveal';
 import RealStats from '../components/RealStats';
 import SEO from '../components/SEO';
 import PageTransition from '../components/PageTransition';
 import { ArrowRightIcon } from '../components/ui/Icon';
+import { fetchStudioLog, type StudioLogEntry, type StudioLogTag } from '../lib/api';
 import styles from './Home.module.css';
 
-const STUDIO_LOG = [
-  {
-    date: 'Nov 2025',
-    tag: 'game',
-    title: 'Boss rush mod — backporting v2.4 to 1.20.4',
-    body: 'Cleaning up the AI pathfinding graph and squashing a desync when two players enter the arena at the same time.',
-  },
-  {
-    date: 'Oct 2025',
-    tag: 'lib',
-    title: 'plugin-framework-api v1.0',
-    body: 'First stable release. Bundled hooks for inventory, chat, and permissions. MIT, no telemetry, no required dependencies.',
-  },
-  {
-    date: 'Oct 2025',
-    tag: 'ai',
-    title: 'Local NPC dialogue model — round 4',
-    body: 'Trying smaller context windows and a hand-curated dialogue corpus instead of scraping. Results are messier but more on-brand.',
-  },
-  {
-    date: 'Sep 2025',
-    tag: 'site',
-    title: 'This site, rewritten',
-    body: 'Killed the fake telemetry panel, dropped the gradient text, and put our actual work above the fold.',
-  },
-];
-
-const TAG_LABEL: Record<string, string> = {
+const TAG_LABEL: Record<StudioLogTag | 'other', string> = {
   game: 'Game',
   lib: 'Library',
   ai: 'AI',
   site: 'Site',
+  other: 'Other',
 };
 
 export default function Home() {
+  const [entries, setEntries] = useState<StudioLogEntry[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchStudioLog()
+      .then((data) => {
+        if (active) setEntries(data);
+      })
+      .catch(() => {
+        if (active) setEntries([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <PageTransition>
       <SEO />
@@ -50,17 +42,17 @@ export default function Home() {
         <div className={styles.heroInner}>
           <p className={styles.eyebrow}>
             <span className={styles.eyebrowMark} aria-hidden="true" />
-            DemonZ Development — a small studio
+            DemonZ Development · since 2021
           </p>
           <h1 className={styles.heroHeading}>
             Open source libraries, game mods,<br />
             and the occasional AI experiment.
           </h1>
           <p className={styles.heroSubtitle}>
-            We are three developers who ship production code for games, write
+            We are six developers who ship production code for games, write
             libraries we wish existed, and train small models on our own GPUs.
-            Everything that isn&apos;t a paid game is published under a permissive
-            license.
+            Most of what we release is open source. A few paid titles stay
+            closed.
           </p>
           <div className={styles.heroCtaGroup}>
             <Link to="/projects" className={styles.ctaPrimary}>
@@ -85,22 +77,33 @@ export default function Home() {
             </p>
           </div>
 
-          <ol className={styles.log}>
-            {STUDIO_LOG.map((entry) => (
-              <li key={entry.title} className={styles.logItem}>
-                <div className={styles.logMeta}>
-                  <time className={styles.logDate}>{entry.date}</time>
-                  <span className={`${styles.logTag} ${styles[`tag_${entry.tag}`]}`}>
-                    {TAG_LABEL[entry.tag]}
-                  </span>
-                </div>
-                <div className={styles.logBody}>
-                  <h3 className={styles.logTitle}>{entry.title}</h3>
-                  <p className={styles.logText}>{entry.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
+          {entries === null ? (
+            <p className={styles.logEmpty}>Loading the studio log…</p>
+          ) : entries.length === 0 ? (
+            <p className={styles.logEmpty}>
+              Nothing logged yet. Check back after the next release.
+            </p>
+          ) : (
+            <ol className={styles.log}>
+              {entries.map((entry) => {
+                const tagClass = styles[`tag_${entry.tag}`] ?? styles.tag_other;
+                return (
+                  <li key={entry.id} className={styles.logItem}>
+                    <div className={styles.logMeta}>
+                      <time className={styles.logDate}>{entry.entry_date}</time>
+                      <span className={`${styles.logTag} ${tagClass}`}>
+                        {TAG_LABEL[entry.tag] ?? entry.tag}
+                      </span>
+                    </div>
+                    <div className={styles.logBody}>
+                      <h3 className={styles.logTitle}>{entry.title}</h3>
+                      <p className={styles.logText}>{entry.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
         </section>
       </ScrollReveal>
 
@@ -134,7 +137,7 @@ export default function Home() {
                 isn&apos;t tied to a paid title.
               </p>
               <p>
-                The team is three people, based in different time zones, and
+                The team is six people, based in different time zones, and
                 asynchronous by default. We do not take on client work. If a
                 library here saves you an afternoon, that&apos;s the entire
                 business model.
@@ -148,11 +151,11 @@ export default function Home() {
                 </div>
                 <div className={styles.factRow}>
                   <dt>Team</dt>
-                  <dd>Three devs</dd>
+                  <dd>Six developers</dd>
                 </div>
                 <div className={styles.factRow}>
-                  <dt>License</dt>
-                  <dd>MIT for libraries</dd>
+                  <dt>Licensing</dt>
+                  <dd>Mostly open source</dd>
                 </div>
                 <div className={styles.factRow}>
                   <dt>Client work</dt>
@@ -160,7 +163,7 @@ export default function Home() {
                 </div>
                 <div className={styles.factRow}>
                   <dt>Where</dt>
-                  <dd>Three time zones, one Discord</dd>
+                  <dd>Time zones apart, one Discord</dd>
                 </div>
               </dl>
             </aside>

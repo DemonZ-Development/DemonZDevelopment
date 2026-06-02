@@ -198,3 +198,21 @@ export async function postContact(
 export async function fetchStats(): Promise<Stats> {
   return request<Stats>('/stats');
 }
+
+// ─── Studio log ─────────────────────────────────────────────
+
+export type StudioLogTag = 'game' | 'lib' | 'ai' | 'site' | 'other';
+
+export interface StudioLogEntry {
+  id: string;
+  entry_date: string;
+  tag: StudioLogTag;
+  title: string;
+  body: string;
+  display_order: number;
+  created_at: string;
+}
+
+export async function fetchStudioLog(): Promise<StudioLogEntry[]> {
+  return request<StudioLogEntry[]>('/studio-log');
+}

@@ -52,6 +52,8 @@ adminRoutes.use('/comments/*', adminAuth);
 adminRoutes.use('/messages', adminAuth);
 adminRoutes.use('/messages/*', adminAuth);
 adminRoutes.use('/media/*', adminAuth);
+adminRoutes.use('/studio-log', adminAuth);
+adminRoutes.use('/studio-log/*', adminAuth);
 
 // Projects CRUD
 adminRoutes.get('/projects', async (c) => {
@@ -204,6 +206,46 @@ adminRoutes.put('/messages/:id/read', async (c) => {
 adminRoutes.delete('/messages/:id', async (c) => {
   const id = c.req.param('id');
   const { error } = await supabase(c.env, `contact_messages?id=eq.${id}`, {
+    method: 'DELETE',
+  });
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ message: 'Deleted' });
+});
+
+// Studio log CRUD
+adminRoutes.get('/studio-log', async (c) => {
+  const { data, error } = await supabase(
+    c.env,
+    'studio_log?select=id,entry_date,tag,title,body,display_order,published,created_at&order=display_order.asc,created_at.desc',
+  );
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data);
+});
+
+adminRoutes.post('/studio-log', async (c) => {
+  const body = await c.req.json();
+  const { data, error } = await supabase(c.env, 'studio_log', {
+    method: 'POST',
+    body,
+  });
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data, 201);
+});
+
+adminRoutes.put('/studio-log/:id', async (c) => {
+  const id = c.req.param('id');
+  const body = await c.req.json();
+  const { error } = await supabase(c.env, `studio_log?id=eq.${id}`, {
+    method: 'PATCH',
+    body,
+  });
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ message: 'Updated' });
+});
+
+adminRoutes.delete('/studio-log/:id', async (c) => {
+  const id = c.req.param('id');
+  const { error } = await supabase(c.env, `studio_log?id=eq.${id}`, {
     method: 'DELETE',
   });
   if (error) return c.json({ error: error.message }, 500);

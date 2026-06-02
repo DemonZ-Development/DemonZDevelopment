@@ -20,6 +20,7 @@ import {
   MessageDetailModal,
 } from '../components/admin/DetailModals';
 import { ChangelogFormModal } from '../components/admin/ChangelogFormModal';
+import { StudioLogFormModal } from '../components/admin/StudioLogFormModal';
 import { ToastProvider } from '../components/ui/Toast';
 import { useToast } from '../hooks/useToast';
 import {
@@ -30,29 +31,33 @@ import {
   deleteComment,
   deleteMessage,
   deleteProject,
+  deleteStudioLogEntry,
   fetchAdminArticles,
   fetchAdminComments,
   fetchAdminMessages,
   fetchAdminProjects,
+  fetchAdminStudioLog,
   fetchStats,
   markMessageRead,
   type AdminArticle,
   type AdminComment,
   type AdminMessage,
   type AdminProject,
+  type AdminStudioLogEntry,
   type Stats,
 } from '../lib/api';
 import styles from './Admin.module.css';
 
 const TOKEN_KEY = 'dzd_admin_token';
 
-type Tab = 'projects' | 'articles' | 'comments' | 'messages';
+type Tab = 'projects' | 'articles' | 'comments' | 'messages' | 'studio-log';
 
 type DeleteTarget =
   | { kind: 'project'; id: string; name: string }
   | { kind: 'article'; id: string; title: string }
   | { kind: 'comment'; id: string }
   | { kind: 'message'; id: string; name: string }
+  | { kind: 'studio-log'; id: string; title: string }
   | null;
 
 interface ProjectFormTarget {
@@ -63,6 +68,11 @@ interface ProjectFormTarget {
 interface ArticleFormTarget {
   mode: 'create' | 'edit';
   article: AdminArticle | null;
+}
+
+interface StudioLogFormTarget {
+  mode: 'create' | 'edit';
+  entry: AdminStudioLogEntry | null;
 }
 
 // ─── Login ─────────────────────────────────────────────────
@@ -137,6 +147,7 @@ function AdminDashboard({
   const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [messages, setMessages] = useState<AdminMessage[]>([]);
+  const [studioLog, setStudioLog] = useState<AdminStudioLogEntry[]>([]);
 
   const [tabLoading, setTabLoading] = useState(false);
   const [tabError, setTabError] = useState(false);
@@ -144,6 +155,7 @@ function AdminDashboard({
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [projectForm, setProjectForm] = useState<ProjectFormTarget | null>(null);
   const [articleForm, setArticleForm] = useState<ArticleFormTarget | null>(null);
+  const [studioLogForm, setStudioLogForm] = useState<StudioLogFormTarget | null>(null);
   const [viewComment, setViewComment] = useState<AdminComment | null>(null);
   const [viewMessage, setViewMessage] = useState<AdminMessage | null>(null);
   const [changelogProject, setChangelogProject] = useState<AdminProject | null>(null);
@@ -188,6 +200,9 @@ function AdminDashboard({
         } else if (tab === 'messages') {
           data = await fetchAdminMessages(token);
           if (active) setMessages(data);
+        } else if (tab === 'studio-log') {
+          data = await fetchAdminStudioLog(token);
+          if (active) setStudioLog(data);
         }
       } catch (err) {
         if (err instanceof ApiError && err.status === 401) {
@@ -254,6 +269,17 @@ function AdminDashboard({
     );
   }, [messages, search]);
 
+  const filteredStudioLog = useMemo(() => {
+    if (!search.trim()) return studioLog;
+    const q = search.toLowerCase();
+    return studioLog.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.body.toLowerCase().includes(q) ||
+        e.entry_date.toLowerCase().includes(q),
+    );
+  }, [studioLog, search]);
+
   // ---- Stats counts (derived from current data) ----
   const pendingCommentCount = comments.filter((c) => !c.approved).length;
   const unreadMessageCount = messages.filter((m) => !m.read).length;
@@ -315,6 +341,15 @@ function AdminDashboard({
     setArticleForm(null);
   }
 
+  function handleStudioLogSaved(saved: AdminStudioLogEntry, isNew: boolean) {
+    if (isNew) {
+      setStudioLog((es) => [saved, ...es]);
+    } else {
+      setStudioLog((es) => es.map((e) => (e.id === saved.id ? saved : e)));
+    }
+    setStudioLogForm(null);
+  }
+
   async function performDelete() {
     if (!deleteTarget) return;
     const target = deleteTarget;
@@ -336,6 +371,10 @@ function AdminDashboard({
         await deleteMessage(token, target.id);
         setMessages((ms) => ms.filter((m) => m.id !== target.id));
         toast.success('Message deleted');
+      } else if (target.kind === 'studio-log') {
+        await deleteStudioLogEntry(token, target.id);
+        setStudioLog((es) => es.filter((e) => e.id !== target.id));
+        toast.success('Studio log entry deleted');
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Delete failed');
@@ -353,6 +392,8 @@ function AdminDashboard({
         return 'Delete this comment? This cannot be undone.';
       case 'message':
         return `Delete message from ${deleteTarget.name}? This cannot be undone.`;
+      case 'studio-log':
+        return `Delete studio log entry "${deleteTarget.title}"? This cannot be undone.`;
     }
   }
 
@@ -379,13 +420,15 @@ function AdminDashboard({
         ) : null}
 
         <div className={styles.tabs} role="tablist">
-          {(['projects', 'articles', 'comments', 'messages'] as Tab[]).map((t) => {
+          {(['projects', 'articles', 'studio-log', 'comments', 'messages'] as Tab[]).map((t) => {
             const badge =
               t === 'comments'
                 ? pendingCommentCount
                 : t === 'messages'
                   ? unreadMessageCount
                   : 0;
+            const label =
+              t === 'studio-log' ? 'Studio Log' : t.charAt(0).toUpperCase() + t.slice(1);
             return (
               <button
                 key={t}
@@ -397,7 +440,7 @@ function AdminDashboard({
                   setSearch('');
                 }}
               >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
+                {label}
                 {badge > 0 && <span className={styles.tabBadge}>{badge}</span>}
               </button>
             );
@@ -417,9 +460,11 @@ function AdminDashboard({
                   ? 'Search projects…'
                   : tab === 'articles'
                     ? 'Search articles…'
-                    : tab === 'comments'
-                      ? 'Search comments…'
-                      : 'Search messages…'
+                    : tab === 'studio-log'
+                      ? 'Search studio log…'
+                      : tab === 'comments'
+                        ? 'Search comments…'
+                        : 'Search messages…'
               }
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -440,6 +485,14 @@ function AdminDashboard({
               onClick={() => setArticleForm({ mode: 'create', article: null })}
             >
               <PlusIcon size={14} /> New Article
+            </Button>
+          )}
+          {tab === 'studio-log' && (
+            <Button
+              size="small"
+              onClick={() => setStudioLogForm({ mode: 'create', entry: null })}
+            >
+              <PlusIcon size={14} /> New Entry
             </Button>
           )}
         </div>
@@ -466,6 +519,14 @@ function AdminDashboard({
             onEdit={(a) => setArticleForm({ mode: 'edit', article: a })}
             onDelete={(a) =>
               setDeleteTarget({ kind: 'article', id: a.id, title: a.title })
+            }
+          />
+        ) : tab === 'studio-log' ? (
+          <StudioLogTable
+            entries={filteredStudioLog}
+            onEdit={(e) => setStudioLogForm({ mode: 'edit', entry: e })}
+            onDelete={(e) =>
+              setDeleteTarget({ kind: 'studio-log', id: e.id, title: e.title })
             }
           />
         ) : tab === 'comments' ? (
@@ -523,6 +584,16 @@ function AdminDashboard({
           article={articleForm.article}
           onClose={() => setArticleForm(null)}
           onSaved={handleArticleSaved}
+        />
+      )}
+
+      {studioLogForm && (
+        <StudioLogFormModal
+          open={studioLogForm !== null}
+          token={token}
+          entry={studioLogForm.entry}
+          onClose={() => setStudioLogForm(null)}
+          onSaved={handleStudioLogSaved}
         />
       )}
 
@@ -852,6 +923,77 @@ function MessagesTable({
                     onClick={() => onDelete(m)}
                   >
                     <TrashIcon size={12} />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function StudioLogTable({
+  entries,
+  onEdit,
+  onDelete,
+}: {
+  entries: AdminStudioLogEntry[];
+  onEdit: (e: AdminStudioLogEntry) => void;
+  onDelete: (e: AdminStudioLogEntry) => void;
+}) {
+  if (entries.length === 0) {
+    return (
+      <EmptyState
+        title="No studio log entries"
+        description="No matching entries. Add one to show it on the home page."
+      />
+    );
+  }
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Tag</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Order</th>
+            <th className={styles.actionsCol}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {entries.map((e) => (
+            <tr key={e.id}>
+              <td className={styles.muted}>{e.entry_date}</td>
+              <td>
+                <span className={`${styles.tag} ${styles.tagAccent}`}>{e.tag}</span>
+              </td>
+              <td>
+                <div className={styles.primary}>{e.title}</div>
+                <div className={styles.muted}>
+                  {e.body.length > 100 ? `${e.body.slice(0, 100)}…` : e.body}
+                </div>
+              </td>
+              <td>
+                <span
+                  className={`${styles.tag} ${
+                    e.published ? styles.tagSuccess : styles.tagWarning
+                  }`}
+                >
+                  {e.published ? 'Published' : 'Draft'}
+                </span>
+              </td>
+              <td className={styles.muted}>{e.display_order}</td>
+              <td className={styles.actionsCol}>
+                <div className={styles.actions}>
+                  <Button size="small" variant="ghost" onClick={() => onEdit(e)}>
+                    <EditIcon size={12} /> Edit
+                  </Button>
+                  <Button size="small" variant="danger" onClick={() => onDelete(e)}>
+                    <TrashIcon size={12} /> Delete
                   </Button>
                 </div>
               </td>

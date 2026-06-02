@@ -78,7 +78,7 @@ export default function Footer() {
             </Link>
             <p className={styles.tagline}>
               Open source libraries, game mods, and small AI experiments. Built
-              by three developers, for whoever finds it useful.
+              by six developers, for whoever finds it useful.
             </p>
             <div className={styles.social}>
               {SOCIAL_LINKS.map(({ label, href, icon }) => (
@@ -125,7 +125,7 @@ export default function Footer() {
 
         <div className={styles.bottom}>
           <p className={styles.bottomText}>© 2026 DemonZ Development</p>
-          <p className={styles.bottomText}>MIT where applicable.</p>
+          <p className={styles.bottomText}>Mostly open source, where it makes sense.</p>
         </div>
       </div>
     </footer>
