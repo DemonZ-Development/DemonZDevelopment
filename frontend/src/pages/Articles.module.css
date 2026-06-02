@@ -372,8 +372,7 @@
   background: var(--color-bg-raised);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
-  max-width: 600px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .empty p {

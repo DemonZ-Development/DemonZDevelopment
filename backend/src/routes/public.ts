@@ -324,6 +324,19 @@ publicRoutes.post('/contact', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
+// Studio log
+// ---------------------------------------------------------------------------
+
+publicRoutes.get('/studio-log', cache60s, async (c) => {
+  const { data, error } = await supabase(
+    c.env,
+    'studio_log?select=id,entry_date,tag,title,body,display_order,created_at&published=eq.true&order=display_order.asc,created_at.desc&limit=20',
+  );
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json(data);
+});
+
+// ---------------------------------------------------------------------------
 // Search
 // ---------------------------------------------------------------------------
 

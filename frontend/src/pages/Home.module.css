@@ -202,10 +202,19 @@
   background: transparent;
 }
 
-.tag_game { color: var(--color-warm); border-color: var(--color-warm-muted); }
-.tag_lib  { color: var(--color-accent); border-color: var(--color-border-accent); }
-.tag_ai   { color: var(--color-text-strong); }
-.tag_site { color: var(--color-text-muted); }
+.tag_game   { color: var(--color-warm); border-color: var(--color-warm-muted); }
+.tag_lib    { color: var(--color-accent); border-color: var(--color-border-accent); }
+.tag_ai     { color: var(--color-text-strong); }
+.tag_site   { color: var(--color-text-muted); }
+.tag_other  { color: var(--color-text-muted); }
+
+.logEmpty {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  padding: var(--space-6) 0;
+}
 
 .logBody {
   display: flex;

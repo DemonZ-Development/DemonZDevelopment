@@ -240,6 +240,28 @@ export interface AdminMessage {
   created_at: string;
 }
 
+export type StudioLogTag = 'game' | 'lib' | 'ai' | 'site' | 'other';
+
+export interface AdminStudioLogEntry {
+  id: string;
+  entry_date: string;
+  tag: StudioLogTag;
+  title: string;
+  body: string;
+  display_order: number;
+  published: boolean;
+  created_at: string;
+}
+
+export interface StudioLogInput {
+  entry_date: string;
+  tag: StudioLogTag;
+  title: string;
+  body: string;
+  display_order: number;
+  published: boolean;
+}
+
 /**
  * Authenticated request helper. Throws ApiError on non-2xx, with a
  * dedicated `ApiError(..., 401)` so callers can detect "token expired"
@@ -377,6 +399,31 @@ export const createChangelog = (
 
 export const deleteChangelog = (token: string, id: string) =>
   adminRequest<{ message: string }>(`/admin/changelogs/${id}`, token, {
+    method: 'DELETE',
+  });
+
+// Studio log
+export const fetchAdminStudioLog = (token: string) =>
+  adminRequest<AdminStudioLogEntry[]>('/admin/studio-log', token);
+
+export const createStudioLogEntry = (token: string, data: StudioLogInput) =>
+  adminRequest<AdminStudioLogEntry>('/admin/studio-log', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const updateStudioLogEntry = (
+  token: string,
+  id: string,
+  data: Partial<StudioLogInput>,
+) =>
+  adminRequest<{ message: string }>(`/admin/studio-log/${id}`, token, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+
+export const deleteStudioLogEntry = (token: string, id: string) =>
+  adminRequest<{ message: string }>(`/admin/studio-log/${id}`, token, {
     method: 'DELETE',
   });
 
