@@ -95,7 +95,9 @@ export default function Articles() {
       </div>
 
       {loading ? (
-        <SkeletonGrid count={3} className={s.grid} />
+        <section className={s.section}>
+          <SkeletonGrid count={3} className={s.grid} />
+        </section>
       ) : filteredArticles.length === 0 ? (
         <div className={s.empty}>
           <EmptyState
