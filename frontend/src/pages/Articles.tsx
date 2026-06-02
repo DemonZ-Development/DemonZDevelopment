@@ -40,10 +40,10 @@ export default function Articles() {
     const query = searchQuery.toLowerCase().trim();
     if (!query) return true;
     return (
-      article.title.toLowerCase().includes(query) ||
-      article.summary.toLowerCase().includes(query) ||
-      (article.content && article.content.toLowerCase().includes(query)) ||
-      (article.category && article.category.toLowerCase().includes(query))
+      article.title?.toLowerCase().includes(query) ||
+      article.summary?.toLowerCase().includes(query) ||
+      article.content?.toLowerCase().includes(query) ||
+      article.category?.toLowerCase().includes(query)
     );
   });
 
