@@ -28,7 +28,8 @@ adminRoutes.post('/login', async (c) => {
   }
 
   const hash = await sha256Hex(password);
-  if (!timingSafeEqual(hash, c.env.ADMIN_PASSWORD_HASH)) {
+  const storedHash = (c.env.ADMIN_PASSWORD_HASH || '').trim();
+  if (!timingSafeEqual(hash, storedHash)) {
     return c.json({ error: 'Invalid credentials' }, 401);
   }
 
