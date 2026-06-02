@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Input, Textarea } from '../ui/Input';
-import { createProject, updateProject, uploadMedia, type AdminProject } from '../../lib/api';
+import { Input, Textarea, Select } from '../ui/Input';
+import { createProject, updateProject, uploadMedia, uploadFile, type AdminProject } from '../../lib/api';
 import { useToast } from '../../hooks/useToast';
 import styles from './ProjectFormModal.module.css';
 
@@ -35,7 +35,7 @@ const EMPTY: FormState = {
   slug: '',
   tagline: '',
   description: '',
-  category: 'plugin',
+  category: 'games',
   version: '1.0.0',
   author: 'DemonZ Development',
   redirect_url: '',
@@ -52,7 +52,7 @@ function toFormState(p: AdminProject | null): FormState {
     slug: p.slug ?? '',
     tagline: p.tagline ?? '',
     description: p.description ?? '',
-    category: p.category ?? 'plugin',
+    category: p.category ?? 'games',
     version: p.version ?? '1.0.0',
     author: p.author ?? 'DemonZ Development',
     redirect_url: p.redirect_url ?? '',
@@ -191,11 +191,16 @@ export function ProjectFormModal({
         />
 
         <div className={styles.grid}>
-          <Input
+          <Select
             label="Category"
             value={form.category}
             onChange={(e) => update('category', e.target.value)}
-            placeholder="plugin, mod, tool, …"
+            options={[
+              { value: 'games', label: 'Games & Mods' },
+              { value: 'libraries', label: 'Libraries' },
+              { value: 'ai', label: 'AI Telemetry' },
+              { value: 'utilities', label: 'Utilities' }
+            ]}
           />
           <Input
             label="Version"
@@ -219,12 +224,46 @@ export function ProjectFormModal({
               onChange={(e) => update('redirect_url', e.target.value)}
               placeholder="https://… (download link)"
             />
-            <Input
-              label="File Path"
-              value={form.file_path}
-              onChange={(e) => update('file_path', e.target.value)}
-              placeholder="downloads/file.zip"
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>Project File</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input
+                  type="file"
+                  accept=".zip,.jar,.tar.gz,.exe,application/octet-stream"
+                  id="project-file-upload"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      toast.info('Uploading project file...');
+                      const filePath = await uploadFile(token, file);
+                      update('file_path', filePath);
+                      toast.success('File uploaded successfully!');
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Upload failed');
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="small"
+                  onClick={() => document.getElementById('project-file-upload')?.click()}
+                >
+                  📦 Upload Project File
+                </Button>
+                {form.file_path ? (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }} title={form.file_path}>
+                    Linked: {form.file_path.split('/').pop()}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                    No file uploaded
+                  </span>
+                )}
+              </div>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <Input
                 label="Image URL"

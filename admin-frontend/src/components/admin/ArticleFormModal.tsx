@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Input, Textarea } from '../ui/Input';
+import { Input, Textarea, Select } from '../ui/Input';
 import {
   createArticle,
   updateArticle,
@@ -35,7 +35,7 @@ const EMPTY: FormState = {
   slug: '',
   summary: '',
   content: '',
-  category: '',
+  category: 'Tutorial',
   image_url: '',
   published: false,
 };
@@ -47,7 +47,7 @@ function toFormState(a: AdminArticle | null): FormState {
     slug: a.slug ?? '',
     summary: a.summary ?? '',
     content: a.content ?? '',
-    category: a.category ?? '',
+    category: a.category ?? 'Tutorial',
     image_url: a.image_url ?? '',
     published: a.published ?? false,
   };
@@ -175,11 +175,15 @@ export function ArticleFormModal({
           rows={12}
         />
         <div className={styles.grid}>
-          <Input
+          <Select
             label="Category"
             value={form.category}
             onChange={(e) => update('category', e.target.value)}
-            placeholder="tutorial, news, …"
+            options={[
+              { value: 'Tutorial', label: 'Tutorial' },
+              { value: 'Announcement', label: 'Announcement' },
+              { value: 'Tech News', label: 'Tech News' }
+            ]}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <Input
