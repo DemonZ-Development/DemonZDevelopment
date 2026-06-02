@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import styles from './Footer.module.css';
 
 const QUICK_LINKS = [
   { label: 'Home', path: '/' },
@@ -61,85 +62,25 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer
-      style={{
-        position: 'relative',
-        marginTop: 'auto',
-      }}
-    >
-      {/* Gradient top border */}
-      <div
-        style={{
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, var(--color-accent) 30%, var(--color-accent) 70%, transparent)',
-          opacity: 0.2,
-        }}
-        aria-hidden="true"
-      />
-
-      <div
-        className="container"
-        style={{
-          paddingTop: 'var(--space-16)',
-          paddingBottom: 'var(--space-8)',
-        }}
-      >
-        {/* Main Footer Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr 1fr',
-            gap: 'var(--space-12)',
-          }}
-          className="footer-grid"
-        >
-          {/* Branding Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <Link
-              to="/"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-3)',
-                textDecoration: 'none',
-                width: 'fit-content',
-              }}
-            >
+    <footer className={styles.footer}>
+      <div className={`container ${styles.inner}`}>
+        <div className={styles.grid}>
+          <div className={styles.brandCol}>
+            <Link to="/" className={styles.brand}>
               <img
                 src="/dzd-logo.jpeg"
                 alt="DemonZ Development logo"
                 width={32}
                 height={32}
-                style={{
-                  borderRadius: 'var(--radius-md)',
-                  objectFit: 'cover',
-                }}
+                className={styles.brandLogo}
               />
-              <span
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontWeight: 'var(--weight-bold)',
-                  fontSize: 'var(--text-lg)',
-                  color: 'var(--color-text-white)',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                DemonZ Development
-              </span>
+              <span className={styles.brandName}>DemonZ Development</span>
             </Link>
-            <p
-              style={{
-                fontSize: 'var(--text-sm)',
-                color: 'var(--color-text-muted)',
-                lineHeight: 'var(--leading-relaxed)',
-                maxWidth: '32ch',
-              }}
-            >
-              Open source tools, plugins, bots, and AI experiments. Built by devs, for devs.
+            <p className={styles.tagline}>
+              Open source libraries, game mods, and small AI experiments. Built
+              by three developers, for whoever finds it useful.
             </p>
-
-            {/* Social Links */}
-            <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
+            <div className={styles.social}>
               {SOCIAL_LINKS.map(({ label, href, icon }) => (
                 <a
                   key={label}
@@ -147,27 +88,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 36,
-                    height: 36,
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-text-muted)',
-                    transition: 'color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--color-accent)';
-                    e.currentTarget.style.borderColor = 'var(--color-border-accent)';
-                    e.currentTarget.style.background = 'var(--color-accent-glow)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--color-text-muted)';
-                    e.currentTarget.style.borderColor = 'var(--color-border)';
-                    e.currentTarget.style.background = 'transparent';
-                  }}
+                  className={styles.socialLink}
                 >
                   {icon}
                 </a>
@@ -175,34 +96,12 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links Column */}
           <div>
-            <h4
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--weight-semibold)',
-                color: 'var(--color-text-strong)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                marginBottom: 'var(--space-4)',
-              }}
-            >
-              Quick Links
-            </h4>
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <h4 className={styles.colTitle}>Site</h4>
+            <ul className={styles.list}>
               {QUICK_LINKS.map(({ label, path }) => (
                 <li key={path}>
-                  <Link
-                    to={path}
-                    style={{
-                      fontSize: 'var(--text-sm)',
-                      color: 'var(--color-text-muted)',
-                      transition: 'color var(--transition-fast)',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-strong)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; }}
-                  >
+                  <Link to={path} className={styles.listLink}>
                     {label}
                   </Link>
                 </li>
@@ -210,34 +109,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Column */}
           <div>
-            <h4
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--weight-semibold)',
-                color: 'var(--color-text-strong)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                marginBottom: 'var(--space-4)',
-              }}
-            >
-              Legal
-            </h4>
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <h4 className={styles.colTitle}>Legal</h4>
+            <ul className={styles.list}>
               {LEGAL_LINKS.map(({ label, path }) => (
                 <li key={path}>
-                  <Link
-                    to={path}
-                    style={{
-                      fontSize: 'var(--text-sm)',
-                      color: 'var(--color-text-muted)',
-                      transition: 'color var(--transition-fast)',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-strong)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; }}
-                  >
+                  <Link to={path} className={styles.listLink}>
                     {label}
                   </Link>
                 </li>
@@ -246,56 +123,11 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div
-          style={{
-            marginTop: 'var(--space-12)',
-            paddingTop: 'var(--space-6)',
-            borderTop: '1px solid var(--color-border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 'var(--space-4)',
-          }}
-        >
-          <p
-            style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--color-text-muted)',
-            }}
-          >
-            © 2026 DemonZ Development. All rights reserved.
-          </p>
-          <p
-            style={{
-              fontSize: 'var(--text-xs)',
-              color: 'var(--color-text-muted)',
-              opacity: 0.6,
-            }}
-          >
-            Made with caffeine and late nights.
-          </p>
+        <div className={styles.bottom}>
+          <p className={styles.bottomText}>© 2026 DemonZ Development</p>
+          <p className={styles.bottomText}>MIT where applicable.</p>
         </div>
       </div>
-
-      {/* Responsive styles */}
-      <style>{`
-        .footer-grid {
-          grid-template-columns: 2fr 1fr 1fr;
-        }
-        @media (max-width: 768px) {
-          .footer-grid {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .footer-grid {
-            grid-template-columns: 1fr !important;
-            gap: var(--space-8) !important;
-          }
-        }
-      `}</style>
     </footer>
   );
 }

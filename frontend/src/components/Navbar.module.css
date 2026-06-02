@@ -1,0 +1,177 @@
+/* ============================================================
+   Navbar
+   Minimal, no glow, no shine. Border appears on scroll.
+   ============================================================ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-nav);
+  height: var(--nav-height);
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background var(--transition-base),
+              border-color var(--transition-base),
+              backdrop-filter var(--transition-base);
+}
+
+.navbarScrolled {
+  background: rgba(12, 11, 10, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: var(--color-border);
+}
+
+.navbarOpen {
+  height: 100vh;
+  background: var(--color-bg);
+  border-bottom-color: transparent;
+  overflow: hidden;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-height);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* --- Brand --- */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brandLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+
+.brandName {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--color-text-strong);
+  letter-spacing: -0.01em;
+}
+
+/* --- Desktop links --- */
+
+.desktopLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+}
+
+.desktopLink {
+  display: block;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  text-decoration: none;
+}
+
+.desktopLink:hover {
+  color: var(--color-text-strong);
+  background: rgba(240, 237, 230, 0.04);
+}
+
+.desktopLinkActive {
+  color: var(--color-text-strong);
+  background: var(--color-accent-soft);
+}
+
+/* --- Hamburger --- */
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  position: relative;
+  z-index: 1;
+  padding: 0;
+}
+
+.hamburgerBar {
+  display: block;
+  width: 20px;
+  height: 1.5px;
+  background-color: var(--color-text-strong);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.hamburgerBarOpen:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+
+.hamburgerBarOpen:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburgerBarOpen:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* --- Mobile overlay --- */
+
+.mobileOverlay {
+  display: none;
+  flex: 1;
+  width: 100%;
+  background: var(--color-bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-12);
+}
+
+.mobileLink {
+  font-size: 1.5rem;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  color: var(--color-text-strong);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.mobileLinkActive {
+  color: var(--color-accent);
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 768px) {
+  .desktopLinks {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .mobileOverlay {
+    display: flex;
+  }
+}

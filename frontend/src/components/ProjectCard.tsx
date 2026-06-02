@@ -1,4 +1,3 @@
-import { useRef, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import type { Project } from '../lib/api';
 import { DownloadIcon, ChevronRightIcon, CubeIcon } from './ui/Icon';
@@ -22,25 +21,11 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project }: ProjectCardProps) {
-  const cardRef = useRef<HTMLAnchorElement>(null);
-
-  const handleMouseMove = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    cardRef.current.style.setProperty('--mouse-x', `${x}px`);
-    cardRef.current.style.setProperty('--mouse-y', `${y}px`);
-  };
-
   return (
-    <Link 
+    <Link
       to={`/projects/${project.slug}`}
       className={styles.card}
-      ref={cardRef}
-      onMouseMove={handleMouseMove}
     >
-      <div className={styles.glow} />
       <div className={styles.imageWrap}>
         {project.image_url ? (
           <img
@@ -68,7 +53,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {formatDownloads(project.downloads)}
         </span>
         <span className={styles.viewButton}>
-          View Details <ChevronRightIcon size={14} />
+          View details
+          <ChevronRightIcon size={14} />
         </span>
       </div>
     </Link>
