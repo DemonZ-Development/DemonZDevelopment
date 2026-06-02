@@ -24,10 +24,13 @@
   font-family: 'Outfit', sans-serif;
   font-size: 3rem;
   font-weight: 800;
-  color: var(--color-text-strong);
   margin: 0 0 0.75rem;
   letter-spacing: -1px;
   position: relative;
+  background: linear-gradient(135deg, var(--color-text-white) 30%, var(--color-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .hero p {
