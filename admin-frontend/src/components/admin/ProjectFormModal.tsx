@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input, Textarea } from '../ui/Input';
-import { createProject, updateProject, type AdminProject } from '../../lib/api';
+import { createProject, updateProject, uploadMedia, type AdminProject } from '../../lib/api';
 import { useToast } from '../../hooks/useToast';
 import styles from './ProjectFormModal.module.css';
 
@@ -225,12 +225,47 @@ export function ProjectFormModal({
               onChange={(e) => update('file_path', e.target.value)}
               placeholder="downloads/file.zip"
             />
-            <Input
-              label="Image URL"
-              value={form.image_url}
-              onChange={(e) => update('image_url', e.target.value)}
-              placeholder="https://…/cover.png"
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <Input
+                label="Image URL"
+                value={form.image_url}
+                onChange={(e) => update('image_url', e.target.value)}
+                placeholder="https://…/cover.png"
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="project-image-upload"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      toast.info('Uploading image...');
+                      const url = await uploadMedia(token, file);
+                      update('image_url', url);
+                      toast.success('Image uploaded successfully!');
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Upload failed');
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="small"
+                  onClick={() => document.getElementById('project-image-upload')?.click()}
+                >
+                  📤 Upload Local Image
+                </Button>
+                {form.image_url && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                    Linked: {form.image_url.split('/').pop()}
+                  </span>
+                )}
+              </div>
+            </div>
             <Input
               label="Source URL"
               value={form.source_url}
