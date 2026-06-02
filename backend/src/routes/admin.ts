@@ -51,6 +51,7 @@ adminRoutes.use('/comments', adminAuth);
 adminRoutes.use('/comments/*', adminAuth);
 adminRoutes.use('/messages', adminAuth);
 adminRoutes.use('/messages/*', adminAuth);
+adminRoutes.use('/media/*', adminAuth);
 
 // Projects CRUD
 adminRoutes.get('/projects', async (c) => {
@@ -207,6 +208,47 @@ adminRoutes.delete('/messages/:id', async (c) => {
   });
   if (error) return c.json({ error: error.message }, 500);
   return c.json({ message: 'Deleted' });
+});
+
+// Media upload
+adminRoutes.post('/media/upload', async (c) => {
+  const body = await c.req.parseBody();
+  const file = body.file;
+  if (!file || !(file instanceof File)) {
+    return c.json({ error: 'No file uploaded' }, 400);
+  }
+
+  const extension = file.name.split('.').pop() || 'png';
+  const sanitizedName = file.name
+    .replace(/\.[^/.]+$/, "") // remove extension
+    .replace(/[^a-zA-Z0-9]/g, '-')
+    .toLowerCase();
+  const fileName = `${Date.now()}-${sanitizedName}.${extension}`;
+
+  const uploadUrl = `${c.env.SUPABASE_URL}/storage/v1/object/media/${fileName}`;
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const res = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        apikey: c.env.SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${c.env.SUPABASE_SERVICE_KEY}`,
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      body: arrayBuffer,
+    });
+
+    if (!res.ok) {
+      const errMsg = await res.text();
+      return c.json({ error: `Storage upload failed: ${errMsg}` }, 500);
+    }
+
+    const publicUrl = `${c.env.SUPABASE_URL}/storage/v1/object/public/media/${fileName}`;
+    return c.json({ url: publicUrl }, 201);
+  } catch (err) {
+    return c.json({ error: err instanceof Error ? err.message : 'Upload error' }, 500);
+  }
 });
 
 export default adminRoutes;

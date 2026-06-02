@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchProject, apiUrl, type Project } from '../lib/api';
+import Markdown from '../components/Markdown';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import ChangelogTimeline from '../components/ChangelogTimeline';
 import CommentThread from '../components/CommentThread';
@@ -170,7 +171,7 @@ export default function ProjectDetail() {
         <div className={styles.body}>
           <div className={styles.mainCol}>
             {tab === 'overview' && (
-              <div className={styles.description}>{project.description}</div>
+              <div className={styles.description}><Markdown content={project.description} /></div>
             )}
             {tab === 'changelog' && <ChangelogTimeline projectSlug={project.slug} />}
             {tab === 'discussion' && <CommentThread projectSlug={project.slug} />}

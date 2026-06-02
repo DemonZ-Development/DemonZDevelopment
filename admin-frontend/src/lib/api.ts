@@ -364,3 +364,25 @@ export const deleteMessage = (token: string, id: string) =>
   adminRequest<{ message: string }>(`/admin/messages/${id}`, token, {
     method: 'DELETE',
   });
+
+// Media Upload
+export async function uploadMedia(token: string, file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/admin/media/upload`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new ApiError(text || 'Upload failed', res.status);
+  }
+
+  const { url } = (await res.json()) as { url: string };
+  return url;
+}

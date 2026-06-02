@@ -6,6 +6,7 @@ import { Input, Textarea } from '../ui/Input';
 import {
   createArticle,
   updateArticle,
+  uploadMedia,
   type AdminArticle,
 } from '../../lib/api';
 import { useToast } from '../../hooks/useToast';
@@ -180,12 +181,47 @@ export function ArticleFormModal({
             onChange={(e) => update('category', e.target.value)}
             placeholder="tutorial, news, …"
           />
-          <Input
-            label="Image URL"
-            value={form.image_url}
-            onChange={(e) => update('image_url', e.target.value)}
-            placeholder="https://…/cover.png"
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Input
+              label="Image URL"
+              value={form.image_url}
+              onChange={(e) => update('image_url', e.target.value)}
+              placeholder="https://…/cover.png"
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input
+                type="file"
+                accept="image/*"
+                id="article-image-upload"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    toast.info('Uploading image...');
+                    const url = await uploadMedia(token, file);
+                    update('image_url', url);
+                    toast.success('Image uploaded successfully!');
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'Upload failed');
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="small"
+                onClick={() => document.getElementById('article-image-upload')?.click()}
+              >
+                📤 Upload Local Image
+              </Button>
+              {form.image_url && (
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                  Linked: {form.image_url.split('/').pop()}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <label className={styles.checkboxRow}>
           <input
