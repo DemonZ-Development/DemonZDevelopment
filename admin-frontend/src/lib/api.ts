@@ -365,6 +365,21 @@ export const deleteMessage = (token: string, id: string) =>
     method: 'DELETE',
   });
 
+// Changelogs
+export const createChangelog = (
+  token: string,
+  data: { project_id: string; version: string; title: string; changes: string },
+) =>
+  adminRequest<Changelog>('/admin/changelogs', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+
+export const deleteChangelog = (token: string, id: string) =>
+  adminRequest<{ message: string }>(`/admin/changelogs/${id}`, token, {
+    method: 'DELETE',
+  });
+
 // Media Upload
 export async function uploadMedia(token: string, file: File): Promise<string> {
   const formData = new FormData();

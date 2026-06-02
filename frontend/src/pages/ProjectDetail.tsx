@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchProject, apiUrl } from '../lib/api';
 import Markdown from '../components/Markdown';
 import SEO from '../components/SEO';
@@ -16,12 +16,31 @@ type TabType = 'overview' | 'changelog';
 export default function ProjectDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [tab, setTab] = useState<TabType>('overview');
+  const queryClient = useQueryClient();
 
   const { data: project, isLoading: loading, isError: error } = useQuery({
     queryKey: ['project', slug],
     queryFn: () => fetchProject(slug!),
     enabled: !!slug,
   });
+
+  const handleDownloadClick = () => {
+    if (!slug) return;
+    // Optimistically update download count in UI
+    queryClient.setQueryData(['project', slug], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        downloads: (old.downloads ?? 0) + 1,
+      };
+    });
+
+    // Invalidate project and stats queries to fetch fresh counts in the background
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['project', slug] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+    }, 1500);
+  };
 
   // Per-project structured data (SoftwareApplication). Only rendered once
   // we have the project loaded.
@@ -123,6 +142,7 @@ export default function ProjectDetail() {
                 className="btn btn-primary"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={handleDownloadClick}
                 style={{ textDecoration: 'none' }}
               >
                 <DownloadIcon size={16} />

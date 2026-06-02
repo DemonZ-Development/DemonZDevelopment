@@ -1,0 +1,127 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 32px;
+  }
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--color-text-strong);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+}
+
+/* List section */
+.listSection {
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.listSection::-webkit-scrollbar {
+  width: 6px;
+}
+
+.listSection::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.listSection::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.listSection::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+.changelogItem {
+  background: var(--color-accent-glow);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all var(--transition-fast);
+}
+
+.changelogItem:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
+}
+
+.changelogContent {
+  flex: 1;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.versionBadge {
+  background: var(--color-accent);
+  color: var(--color-text-white);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.changelogTitle {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.changesText {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  margin-top: 6px;
+  font-family: var(--font-body);
+}
+
+.date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  display: block;
+  margin-top: 4px;
+}
+
+/* Form section */
+.formSection {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  align-self: start;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submitBtn {
+  margin-top: 8px;
+}

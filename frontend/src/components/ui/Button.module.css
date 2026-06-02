@@ -28,6 +28,7 @@
 
 .primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
+  color: var(--color-text-white);
   box-shadow: var(--shadow-glow);
   transform: translateY(-1px);
 }
