@@ -9,7 +9,7 @@ import { EmptyState } from '../components/ui/State';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import s from './Articles.module.css';
 
-const CATS = ['all', 'Tutorial', 'Announcement', 'Tech News'] as const;
+const CATS = ['all', 'Tutorial', 'Announcement', 'Tech News', 'AI News'] as const;
 
 function getReadingTime(content: string | null | undefined): string {
   if (!content) return '1 min read';

@@ -182,7 +182,8 @@ export function ArticleFormModal({
             options={[
               { value: 'Tutorial', label: 'Tutorial' },
               { value: 'Announcement', label: 'Announcement' },
-              { value: 'Tech News', label: 'Tech News' }
+              { value: 'Tech News', label: 'Tech News' },
+              { value: 'AI News', label: 'AI News' }
             ]}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
