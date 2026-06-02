@@ -131,16 +131,11 @@ publicRoutes.get('/projects/download/:slug', async (c) => {
   //
   // If the function isn't installed yet, fall back to read-modify-write
   // so downloads still work — just not race-safe.
-  const rpcRes = await fetch(`${c.env.SUPABASE_URL}/rest/v1/rpc/increment_downloads`, {
+  const rpcRes = await supabase(c.env, 'rpc/increment_downloads', {
     method: 'POST',
-    headers: {
-      apikey: c.env.SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${c.env.SUPABASE_SERVICE_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ project_slug: slug }),
+    body: { project_slug: slug },
   });
-  if (!rpcRes.ok) {
+  if (rpcRes.error) {
     const { data: current } = await supabase<{ downloads: number }>(
       c.env,
       `projects?id=eq.${project.id}&select=downloads&limit=1`,

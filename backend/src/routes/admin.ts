@@ -95,7 +95,7 @@ adminRoutes.delete('/projects/:id', async (c) => {
 adminRoutes.get('/articles', async (c) => {
   const { data, error } = await supabase(
     c.env,
-    'articles?select=id,slug,title,category,published,published_at,created_at,updated_at&order=updated_at.desc',
+    'articles?select=id,slug,title,category,published,published_at,created_at&order=created_at.desc',
   );
   if (error) return c.json({ error: error.message }, 500);
   return c.json(data);
