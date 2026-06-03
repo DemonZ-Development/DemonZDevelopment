@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Footer.module.css';
 
@@ -61,6 +62,15 @@ const LEGAL_LINKS = [
 ] as const;
 
 export default function Footer() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
@@ -97,7 +107,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className={styles.colTitle}>Site</h4>
+            <p className={styles.colTitle}>Site</p>
             <ul className={styles.list}>
               {QUICK_LINKS.map(({ label, path }) => (
                 <li key={path}>
@@ -110,7 +120,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className={styles.colTitle}>Legal</h4>
+            <p className={styles.colTitle}>Legal</p>
             <ul className={styles.list}>
               {LEGAL_LINKS.map(({ label, path }) => (
                 <li key={path}>
