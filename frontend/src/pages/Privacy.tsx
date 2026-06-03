@@ -108,7 +108,7 @@ export default function Privacy() {
           <div style={s.section}>
             <h2 style={s.sectionTitle}>6. Inquiries</h2>
             <p style={s.text}>
-              For any questions regarding telemetry, server logs, or request audits, email us at: <strong>contact@demonzdevelopment.online</strong>.
+              For any questions regarding telemetry, server logs, or request audits, email us at: <strong>demonzdevelopment@gmail.com</strong>.
             </p>
           </div>
 
