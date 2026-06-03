@@ -56,7 +56,7 @@ export default function Navbar() {
       <div className={`container ${styles.inner}`}>
         <NavLink to="/" aria-label="DemonZ Development — Home" end className={styles.brand}>
           <img
-            src="/dzd-logo.jpeg"
+            src="/dzd-logo.jpeg?v=2"
             alt="DemonZ Development logo"
             width={32}
             height={32}
