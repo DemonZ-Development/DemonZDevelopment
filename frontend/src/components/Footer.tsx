@@ -78,7 +78,7 @@ export default function Footer() {
           <div className={styles.brandCol}>
             <Link to="/" className={styles.brand}>
               <img
-                src="/dzd-logo.jpeg"
+                src="/dzd-logo.jpeg?v=2"
                 alt="DemonZ Development logo"
                 width={32}
                 height={32}
