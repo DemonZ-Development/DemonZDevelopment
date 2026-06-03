@@ -1,2 +1,1 @@
-# Proxy sitemap.xml to the backend worker dynamically
-/sitemap.xml  https://dzd-api.demonzdevelopment.workers.dev/api/sitemap.xml  200
+/sitemap.xml  https://dzd-api.demonzdevelopment.workers.dev/api/sitemap.xml  301
