@@ -419,4 +419,36 @@ ${urls
   });
 });
 
+// ---------------------------------------------------------------------------
+// Image Serving from Database
+// ---------------------------------------------------------------------------
+
+publicRoutes.get('/images/:name', async (c) => {
+  const name = c.req.param('name');
+
+  const res = await supabase<{ name: string; content_type: string; data: string }>(
+    c.env,
+    `images?select=name,content_type,data&name=eq.${name}`,
+  );
+
+  if (res.error || !Array.isArray(res.data) || res.data.length === 0) {
+    return c.text('Image not found', 404);
+  }
+
+  const img = res.data[0];
+
+  // Decode base64 to binary bytes
+  const binaryString = atob(img.data);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+
+  return c.body(bytes, 200, {
+    'Content-Type': img.content_type,
+    'Cache-Control': 'public, max-age=604800, must-revalidate',
+  });
+});
+
 export default publicRoutes;
