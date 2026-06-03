@@ -7,10 +7,10 @@ const __dirname = path.dirname(__filename);
 
 async function generate() {
   try {
-    console.log('Fetching projects and articles from API...');
+    const t = Date.now();
     const [projectsRes, articlesRes] = await Promise.all([
-      fetch('https://dzd-api.demonzdevelopment.workers.dev/api/projects').then((r) => r.json()),
-      fetch('https://dzd-api.demonzdevelopment.workers.dev/api/articles').then((r) => r.json())
+      fetch(`https://dzd-api.demonzdevelopment.workers.dev/api/projects?t=${t}`).then((r) => r.json()),
+      fetch(`https://dzd-api.demonzdevelopment.workers.dev/api/articles?t=${t}`).then((r) => r.json())
     ]);
 
     const host = 'https://demonzdevelopment.online';
