@@ -109,7 +109,7 @@ export default function Terms() {
           <div style={s.section}>
             <h2 style={s.sectionTitle}>7. Modifications & Inquiries</h2>
             <p style={s.text}>
-              We reserve the right to modify these terms at any time. Changes will be posted directly to this page. For licensing inquiries, reach out via email at: <strong>contact@demonzdevelopment.online</strong>.
+              We reserve the right to modify these terms at any time. Changes will be posted directly to this page. For licensing inquiries, reach out via email at: <strong>demonzdevelopment@gmail.com</strong>.
             </p>
           </div>
 
