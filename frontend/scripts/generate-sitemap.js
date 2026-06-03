@@ -56,8 +56,10 @@ ${urls
 </urlset>`;
 
     const destPath = path.join(__dirname, '../public/sitemap.xml');
+    const backupPath = path.join(__dirname, '../public/sitemap-main.xml');
     fs.writeFileSync(destPath, xml, 'utf8');
-    console.log('Sitemap generated successfully at:', destPath);
+    fs.writeFileSync(backupPath, xml, 'utf8');
+    console.log('Sitemap generated successfully at:', destPath, 'and', backupPath);
   } catch (err) {
     console.error('Error generating sitemap:', err);
     process.exit(1);
