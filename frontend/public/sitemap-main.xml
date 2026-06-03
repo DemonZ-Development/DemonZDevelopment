@@ -46,22 +46,17 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/playstation-state-of-play-june-2026-god-of-war-wolverine</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://demonzdevelopment.online/articles/nvidia-rtx-spark-computex-2026-personal-ai-superchip</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/microsoft-build-2026-windows-local-npu-agentic-ai</loc>
+    <loc>https://demonzdevelopment.online/articles/playstation-state-of-play-june-2026-god-of-war-wolverine</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/state-of-play-june-2026-marvels-wolverine-release-gameplay</loc>
+    <loc>https://demonzdevelopment.online/articles/microsoft-build-2026-windows-local-npu-agentic-ai</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -81,12 +76,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/rise-of-agentic-ai-autonomous-coding-swarms-software-development</loc>
+    <loc>https://demonzdevelopment.online/articles/procedural-worlds-and-neural-assets-how-multimodal-ai-is-reshaping-game-engines</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/procedural-worlds-and-neural-assets-how-multimodal-ai-is-reshaping-game-engines</loc>
+    <loc>https://demonzdevelopment.online/articles/rise-of-agentic-ai-autonomous-coding-swarms-software-development</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
