@@ -9,6 +9,7 @@ const publicRoutes = new Hono<{ Bindings: Env }>();
 
 const cache30s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=30' });
 const cache60s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=60' });
+const cache7Days = cache({ cacheName: 'dzd-images', cacheControl: 'public, max-age=604800, must-revalidate' });
 
 // ---------------------------------------------------------------------------
 // Health
@@ -423,7 +424,7 @@ ${urls
 // Image Serving from Database
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/images/:name', async (c) => {
+publicRoutes.get('/images/:name', cache7Days, async (c) => {
   const name = c.req.param('name');
 
   const res = await supabase<{ name: string; content_type: string; data: string }>(
