@@ -9,7 +9,7 @@ import { EmptyState } from '../components/ui/State';
 import { SkeletonGrid } from '../components/ui/Skeleton';
 import s from './Articles.module.css';
 
-const CATS = ['all', 'Tutorial', 'Announcement', 'Tech News', 'AI News'] as const;
+const CATS = ['all', 'Gaming', 'Tutorial', 'Announcement', 'Tech News', 'AI News'] as const;
 
 function getReadingTime(content: string | null | undefined): string {
   if (!content) return '1 min read';
@@ -122,7 +122,7 @@ export default function Articles() {
                         <img
                           src={featuredArticle.image_url}
                           alt={featuredArticle.title}
-                          className={s.featuredImage}
+                          className={`${s.featuredImage} ${featuredArticle.image_url.endsWith('.svg') ? s.imageSvg : ''}`}
                         />
                       ) : (
                         <div className={s.featuredPlaceholder}>📝</div>
@@ -137,7 +137,7 @@ export default function Articles() {
                       <div className={s.featuredMeta}>
                         <span>
                           {featuredArticle.published_at
-                            ? new Date(featuredArticle.published_at).toLocaleDateString('en-US', {
+                             ? new Date(featuredArticle.published_at).toLocaleDateString('en-US', {
                                 year: 'numeric',
                                 month: 'long',
                                 day: 'numeric',
@@ -171,7 +171,7 @@ export default function Articles() {
                             <img
                               src={article.image_url}
                               alt={article.title}
-                              className={s.cardImage}
+                              className={`${s.cardImage} ${article.image_url.endsWith('.svg') ? s.imageSvg : ''}`}
                             />
                           ) : (
                             <div className={s.cardPlaceholder}>📝</div>
