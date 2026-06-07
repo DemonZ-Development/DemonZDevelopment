@@ -469,3 +469,13 @@ export async function uploadFile(token: string, file: File): Promise<string> {
   const { filePath } = (await res.json()) as { filePath: string };
   return filePath;
 }
+
+// Backup & Restore
+export const exportBackup = (token: string) =>
+  adminRequest<any>('/admin/backup/export', token);
+
+export const restoreBackup = (token: string, data: any) =>
+  adminRequest<{ message: string }>('/admin/backup/restore', token, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });

@@ -431,3 +431,10 @@
     font-size: 1.35rem;
   }
 }
+
+.imageSvg {
+  object-fit: contain !important;
+  padding: 1.5rem;
+  background: var(--color-bg-elevated);
+  box-sizing: border-box;
+}

@@ -39,6 +39,8 @@ import {
   fetchAdminStudioLog,
   fetchStats,
   markMessageRead,
+  exportBackup,
+  restoreBackup,
   type AdminArticle,
   type AdminComment,
   type AdminMessage,
@@ -50,7 +52,7 @@ import styles from './Admin.module.css';
 
 const TOKEN_KEY = 'dzd_admin_token';
 
-type Tab = 'projects' | 'articles' | 'comments' | 'messages' | 'studio-log';
+type Tab = 'projects' | 'articles' | 'comments' | 'messages' | 'studio-log' | 'backup';
 
 type DeleteTarget =
   | { kind: 'project'; id: string; name: string }
@@ -420,7 +422,7 @@ function AdminDashboard({
         ) : null}
 
         <div className={styles.tabs} role="tablist">
-          {(['projects', 'articles', 'studio-log', 'comments', 'messages'] as Tab[]).map((t) => {
+          {(['projects', 'articles', 'studio-log', 'comments', 'messages', 'backup'] as Tab[]).map((t) => {
             const badge =
               t === 'comments'
                 ? pendingCommentCount
@@ -428,7 +430,11 @@ function AdminDashboard({
                   ? unreadMessageCount
                   : 0;
             const label =
-              t === 'studio-log' ? 'Studio Log' : t.charAt(0).toUpperCase() + t.slice(1);
+              t === 'studio-log'
+                ? 'Studio Log'
+                : t === 'backup'
+                  ? 'Backup & Restore'
+                  : t.charAt(0).toUpperCase() + t.slice(1);
             return (
               <button
                 key={t}
@@ -447,55 +453,57 @@ function AdminDashboard({
           })}
         </div>
 
-        <div className={styles.toolbar}>
-          <div className={styles.searchWrap}>
-            <span className={styles.searchIcon} aria-hidden="true">
-              <SearchIcon size={16} />
-            </span>
-            <input
-              type="search"
-              className={styles.searchInput}
-              placeholder={
-                tab === 'projects'
-                  ? 'Search projects…'
-                  : tab === 'articles'
-                    ? 'Search articles…'
-                    : tab === 'studio-log'
-                      ? 'Search studio log…'
-                      : tab === 'comments'
-                        ? 'Search comments…'
-                        : 'Search messages…'
-              }
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label={`Search ${tab}`}
-            />
+        {tab !== 'backup' && (
+          <div className={styles.toolbar}>
+            <div className={styles.searchWrap}>
+              <span className={styles.searchIcon} aria-hidden="true">
+                <SearchIcon size={16} />
+              </span>
+              <input
+                type="search"
+                className={styles.searchInput}
+                placeholder={
+                  tab === 'projects'
+                    ? 'Search projects…'
+                    : tab === 'articles'
+                      ? 'Search articles…'
+                      : tab === 'studio-log'
+                        ? 'Search studio log…'
+                        : tab === 'comments'
+                          ? 'Search comments…'
+                          : 'Search messages…'
+                }
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label={`Search ${tab}`}
+              />
+            </div>
+            {tab === 'projects' && (
+              <Button
+                size="small"
+                onClick={() => setProjectForm({ mode: 'create', project: null })}
+              >
+                <PlusIcon size={14} /> New Project
+              </Button>
+            )}
+            {tab === 'articles' && (
+              <Button
+                size="small"
+                onClick={() => setArticleForm({ mode: 'create', article: null })}
+              >
+                <PlusIcon size={14} /> New Article
+              </Button>
+            )}
+            {tab === 'studio-log' && (
+              <Button
+                size="small"
+                onClick={() => setStudioLogForm({ mode: 'create', entry: null })}
+              >
+                <PlusIcon size={14} /> New Entry
+              </Button>
+            )}
           </div>
-          {tab === 'projects' && (
-            <Button
-              size="small"
-              onClick={() => setProjectForm({ mode: 'create', project: null })}
-            >
-              <PlusIcon size={14} /> New Project
-            </Button>
-          )}
-          {tab === 'articles' && (
-            <Button
-              size="small"
-              onClick={() => setArticleForm({ mode: 'create', article: null })}
-            >
-              <PlusIcon size={14} /> New Article
-            </Button>
-          )}
-          {tab === 'studio-log' && (
-            <Button
-              size="small"
-              onClick={() => setStudioLogForm({ mode: 'create', entry: null })}
-            >
-              <PlusIcon size={14} /> New Entry
-            </Button>
-          )}
-        </div>
+        )}
 
         {tabLoading ? (
           <LoadingState label={`Loading ${tab}`} />
@@ -536,6 +544,8 @@ function AdminDashboard({
             onApprove={handleApproveComment}
             onDelete={(c) => setDeleteTarget({ kind: 'comment', id: c.id })}
           />
+        ) : tab === 'backup' ? (
+          <BackupSection token={token} />
         ) : (
           <MessagesTable
             messages={filteredMessages}
@@ -1001,6 +1011,102 @@ function StudioLogTable({
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ─── Backup & Restore ─────────────────────────────────────
+
+function BackupSection({ token }: { token: string }) {
+  const toast = useToast();
+  const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  async function handleExport() {
+    setLoading(true);
+    try {
+      const data = await exportBackup(token);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dzd_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Backup exported successfully');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to export backup');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const text = evt.target?.result;
+      if (typeof text !== 'string') return;
+
+      if (
+        !confirm(
+          'Are you sure you want to restore this backup? This will overwrite existing records with matching IDs.'
+        )
+      ) {
+        return;
+      }
+
+      setRestoring(true);
+      try {
+        const backupData = JSON.parse(text);
+        const res = await restoreBackup(token, backupData);
+        toast.success(res.message || 'Backup restored successfully');
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to restore backup');
+      } finally {
+        setRestoring(false);
+        e.target.value = ''; // Reset file input
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  return (
+    <div className={styles.backupContainer}>
+      <div className={styles.backupCard}>
+        <h3 className={styles.backupCardTitle}>Export Database Backup</h3>
+        <p className={styles.backupCardText}>
+          Download a complete backup of the database including all projects, articles,
+          changelogs, comments, studio log entries, and contact messages in a single JSON file.
+        </p>
+        <Button onClick={handleExport} disabled={loading || restoring}>
+          {loading ? 'Generating Backup…' : 'Export Backup JSON'}
+        </Button>
+      </div>
+
+      <div className={styles.backupCard}>
+        <h3 className={styles.backupCardTitle}>Restore Database Backup</h3>
+        <p className={styles.backupCardText}>
+          Restore your database using a previously exported JSON backup file. Rows in the backup
+          with matching primary keys will overwrite existing rows in the database.
+        </p>
+        <div className={styles.restoreActions}>
+          <label className={styles.fileInputLabel}>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleFileSelect}
+              disabled={loading || restoring}
+              style={{ display: 'none' }}
+            />
+            {restoring ? 'Restoring Backup…' : 'Select Backup File & Restore'}
+          </label>
+        </div>
+      </div>
     </div>
   );
 }

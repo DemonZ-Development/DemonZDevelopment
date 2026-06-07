@@ -85,7 +85,11 @@ export default function ArticleDetail() {
             </header>
 
             {article.image_url && (
-              <img src={article.image_url} alt={article.title} className={s.heroImage} />
+              <img
+                src={article.image_url}
+                alt={article.title}
+                className={`${s.heroImage} ${article.image_url.endsWith('.svg') ? s.imageSvg : ''}`}
+              />
             )}
 
             <div className={s.content}><Markdown content={article.content} /></div>

@@ -354,3 +354,70 @@
     padding: var(--space-2) var(--space-3);
   }
 }
+
+/* ─── Backup & Restore ───────────────────────────────────── */
+
+.backupContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+}
+
+.backupCard {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-sizing: border-box;
+}
+
+.backupCardTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.backupCardText {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.restoreActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fileInputLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: var(--color-accent);
+  color: var(--color-text-white);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.fileInputLabel:hover {
+  background: var(--color-accent-hover);
+}
+
+@media (max-width: 768px) {
+  .backupContainer {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+}

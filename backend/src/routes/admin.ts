@@ -54,6 +54,7 @@ adminRoutes.use('/messages/*', adminAuth);
 adminRoutes.use('/media/*', adminAuth);
 adminRoutes.use('/studio-log', adminAuth);
 adminRoutes.use('/studio-log/*', adminAuth);
+adminRoutes.use('/backup/*', adminAuth);
 
 // Projects CRUD
 adminRoutes.get('/projects', async (c) => {
@@ -331,6 +332,73 @@ adminRoutes.post('/media/upload', async (c) => {
     return c.json({ url: publicUrl }, 201);
   } catch (err) {
     return c.json({ error: err instanceof Error ? err.message : 'Upload error' }, 500);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Backup & Restore
+// ---------------------------------------------------------------------------
+
+adminRoutes.get('/backup/export', async (c) => {
+  const [projects, articles, comments, messages, studioLog, changelogs] = await Promise.all([
+    supabase(c.env, 'projects?select=*'),
+    supabase(c.env, 'articles?select=*'),
+    supabase(c.env, 'comments?select=*'),
+    supabase(c.env, 'contact_messages?select=*'),
+    supabase(c.env, 'studio_log?select=*'),
+    supabase(c.env, 'changelogs?select=*'),
+  ]);
+
+  if (projects.error) return c.json({ error: `projects: ${projects.error.message}` }, 500);
+  if (articles.error) return c.json({ error: `articles: ${articles.error.message}` }, 500);
+  if (comments.error) return c.json({ error: `comments: ${comments.error.message}` }, 500);
+  if (messages.error) return c.json({ error: `messages: ${messages.error.message}` }, 500);
+  if (studioLog.error) return c.json({ error: `studioLog: ${studioLog.error.message}` }, 500);
+  if (changelogs.error) return c.json({ error: `changelogs: ${changelogs.error.message}` }, 500);
+
+  return c.json({
+    version: 1,
+    exported_at: new Date().toISOString(),
+    projects: projects.data,
+    articles: articles.data,
+    comments: comments.data,
+    contact_messages: messages.data,
+    studio_log: studioLog.data,
+    changelogs: changelogs.data,
+  });
+});
+
+adminRoutes.post('/backup/restore', async (c) => {
+  const body = await c.req.json<any>();
+  if (!body || typeof body !== 'object') {
+    return c.json({ error: 'Invalid backup format' }, 400);
+  }
+
+  const restoreTable = async (table: string, data: any[]) => {
+    if (!Array.isArray(data) || data.length === 0) return;
+    const { error } = await supabase(c.env, `${table}?on_conflict=id`, {
+      method: 'POST',
+      body: data,
+      headers: {
+        'Prefer': 'resolution=merge-duplicates',
+      },
+    });
+    if (error) {
+      throw new Error(`Failed to restore ${table}: ${error.message}`);
+    }
+  };
+
+  try {
+    if (body.projects) await restoreTable('projects', body.projects);
+    if (body.articles) await restoreTable('articles', body.articles);
+    if (body.comments) await restoreTable('comments', body.comments);
+    if (body.contact_messages) await restoreTable('contact_messages', body.contact_messages);
+    if (body.studio_log) await restoreTable('studio_log', body.studio_log);
+    if (body.changelogs) await restoreTable('changelogs', body.changelogs);
+
+    return c.json({ message: 'Backup restored successfully' });
+  } catch (err) {
+    return c.json({ error: err instanceof Error ? err.message : 'Restore error' }, 500);
   }
 });
 
