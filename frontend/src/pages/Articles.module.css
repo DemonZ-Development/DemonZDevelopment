@@ -294,7 +294,7 @@
 
 .cardImageContainer {
   position: relative;
-  height: 180px;
+  aspect-ratio: 16 / 10;
   width: 100%;
   background: var(--color-bg-elevated);
   overflow: hidden;

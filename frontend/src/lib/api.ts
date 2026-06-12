@@ -174,12 +174,13 @@ export async function postComment(
 export async function fetchArticles(category?: string): Promise<Article[]> {
   const params = new URLSearchParams();
   if (category && category !== 'all') params.set('category', category);
+  params.set('_t', Date.now().toString());
   const query = params.toString();
-  return request<Article[]>(`/articles${query ? `?${query}` : ''}`);
+  return request<Article[]>(`/articles?${query}`);
 }
 
 export async function fetchArticle(slug: string): Promise<Article> {
-  return request<Article>(`/articles/${encodeURIComponent(slug)}`);
+  return request<Article>(`/articles/${encodeURIComponent(slug)}?_t=${Date.now()}`);
 }
 
 // ─── Contact ────────────────────────────────────────────────
@@ -196,7 +197,7 @@ export async function postContact(
 // ─── Stats ──────────────────────────────────────────────────
 
 export async function fetchStats(): Promise<Stats> {
-  return request<Stats>('/stats');
+  return request<Stats>(`/stats?_t=${Date.now()}`);
 }
 
 // ─── Studio log ─────────────────────────────────────────────
