@@ -6,6 +6,7 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: 'website' | 'article';
+  noindex?: boolean;
 }
 
 export default function SEO({ 
@@ -13,7 +14,8 @@ export default function SEO({
   description = 'Explore our open-source utilities, game releases, and modifications.', 
   image = 'https://demonzdevelopment.online/logo.png',
   url = 'https://demonzdevelopment.online',
-  type = 'website'
+  type = 'website',
+  noindex = false
 }: SEOProps) {
   const siteTitle = title.includes('DemonZ Development') ? title : `${title} | DemonZ Development`;
   
@@ -21,6 +23,7 @@ export default function SEO({
     <Helmet>
       <title>{siteTitle}</title>
       <meta name="description" content={description} />
+      {noindex && <meta name="robots" content="noindex" />}
       
       {/* OpenGraph */}
       <meta property="og:title" content={siteTitle} />

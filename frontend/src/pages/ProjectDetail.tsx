@@ -75,6 +75,7 @@ export default function ProjectDetail() {
   if (error || !project) {
     return (
       <PageTransition className={styles.page}>
+        <SEO title="Project Not Found" noindex={true} />
         <div className={styles.container}>
           <ErrorState
             title="Project Not Found"

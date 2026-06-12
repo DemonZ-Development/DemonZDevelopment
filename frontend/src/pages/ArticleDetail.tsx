@@ -37,6 +37,7 @@ export default function ArticleDetail() {
   if (error || !article) {
     return (
       <PageTransition className={s.page}>
+        <SEO title="Article Not Found" noindex={true} />
         <div className={`${s.container} ${s.error}`}>
           <ErrorState
             title="Article Not Found"
