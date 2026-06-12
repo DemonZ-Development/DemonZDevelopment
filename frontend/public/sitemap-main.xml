@@ -235,4 +235,19 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/spacex-historic-ipo-debuts-nasdaq-valuation</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/xbox-gaming-division-restructuring-storage-costs-crisis</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/microsoft-releases-mai-thinking-1-reasoning-model</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>
