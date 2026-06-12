@@ -3,11 +3,13 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { PageShell } from '../components/ui/PageShell';
 import { Button } from '../components/ui/Button';
 import { ArrowRightIcon } from '../components/ui/Icon';
+import SEO from '../components/SEO';
 
 export default function NotFound() {
   useDocumentTitle('Page not found | DemonZ Development');
   return (
     <PageShell>
+      <SEO title="Page Not Found" noindex={true} />
       <div
         style={{
           minHeight: '60vh',
