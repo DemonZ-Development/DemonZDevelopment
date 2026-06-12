@@ -264,7 +264,7 @@ publicRoutes.post('/projects/:slug/comments', async (c) => {
 // Articles
 // ---------------------------------------------------------------------------
 
-publicRoutes.get('/articles', cache60s, async (c) => {
+publicRoutes.get('/articles', async (c) => {
   const category = c.req.query('category');
   const limit = parseInt(c.req.query('limit') || '50', 10);
   let path = `articles?published=eq.true&order=published_at.desc&limit=${limit}`;
@@ -273,10 +273,11 @@ publicRoutes.get('/articles', cache60s, async (c) => {
   }
   const { data, error } = await supabase(c.env, path);
   if (error) return c.json({ error: error.message }, 500);
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   return c.json(data);
 });
 
-publicRoutes.get('/articles/:slug', cache60s, async (c) => {
+publicRoutes.get('/articles/:slug', async (c) => {
   const slug = c.req.param('slug');
   const { data, error } = await supabase(
     c.env,
@@ -285,6 +286,7 @@ publicRoutes.get('/articles/:slug', cache60s, async (c) => {
   );
   if (error) return c.json({ error: error.message }, 500);
   if (!data) return c.json({ error: 'Article not found' }, 404);
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   return c.json(data);
 });
 
