@@ -61,7 +61,32 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://demonzdevelopment.online/articles/nintendo-switch-2-one-year-anniversary-nvidia-tegra-t239</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/nvidia-vera-rubin-platform-vera-cpu-agentic-ai-computex-2026</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/how-it-works-generative-latent-pixel-models-game-worlds</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://demonzdevelopment.online/articles/how-it-works-webgpu-rendering-procedural-generation-rust</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/anthropic-calls-for-global-pause-frontier-ai</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/gothic-1-remake-official-release-classic-rpg</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -76,27 +101,137 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/gothic-1-remake-official-release-classic-rpg</loc>
+    <loc>https://demonzdevelopment.online/articles/final-fantasy-vii-revelation-announced-summer-game-fest</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/anthropic-calls-for-global-pause-frontier-ai</loc>
+    <loc>https://demonzdevelopment.online/articles/wwdc-2026-kickoff-apple-intelligence-2-ios-20-siri-gemini</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/nintendo-switch-2-one-year-anniversary-nvidia-tegra-t239</loc>
+    <loc>https://demonzdevelopment.online/articles/jensen-huang-nvidia-rtx-spark-seoul-gaming-hbm4-partnership</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/how-it-works-generative-latent-pixel-models-game-worlds</loc>
+    <loc>https://demonzdevelopment.online/articles/google-deepmind-releases-gemma-4-12b-open-weight-agentic</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://demonzdevelopment.online/articles/nvidia-vera-rubin-platform-vera-cpu-agentic-ai-computex-2026</loc>
+    <loc>https://demonzdevelopment.online/articles/london-tech-week-2026-kicks-off-applied-ai-sovereign-cloud</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/silicon-valley-divided-bipartisan-great-american-ai-act</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/rise-of-corporate-sovereignty-private-data-centers-world-control</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/meta-global-outage-facebook-instagram-threads-down</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/the-wolf-among-us-2-release-window-2027</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/tmnt-the-last-ronin-platinum-games-2027</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/stellar-blade-blood-rain-announced-pc-ps5</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/persona-6-officially-announced-xbox-games-showcase-2026</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/guild-wars-3-announced-pc-playstation-5</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/street-fighter-6-season-4-tifa-lockhart-joins-roster</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/assassins-creed-black-flag-resynced-july-9-release</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/control-resonant-announced-remedy-september-24</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/hot-wheels-infinite-rush-announced-milestone-sept-24</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/spyro-a-realm-beyond-announced-activision</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/resonance-a-plague-tale-legacy-announced-august-27</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/state-of-decay-3-gameplay-trailer-2027-release</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/clockwork-revolution-gameplay-reveal-2026-release</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/silicon-valley-ai-funding-booms-anthropic-openai-ipo-filings</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/us-federal-ai-act-introduced-congress-june-2026</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/european-commission-proposes-cloud-and-ai-development-act-cada</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/java-jdk-27-updates-structured-concurrency-primitive-types-in-patterns</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/gitlab-restructures-cutting-jobs-to-reposition-for-ai-devops</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://demonzdevelopment.online/articles/the-rise-of-vibe-and-verify-agentic-workflows-reshaping-software-engineering</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
