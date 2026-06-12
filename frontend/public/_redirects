@@ -1,1 +1,3 @@
 # Custom Cloudflare Pages redirect rules can be placed below
+/sitemap.xml https://dzd-api.demonzdevelopment.workers.dev/api/sitemap.xml 200
+
