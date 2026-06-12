@@ -89,7 +89,7 @@ export default function ArticleDetail() {
               <img
                 src={article.image_url}
                 alt={article.title}
-                className={`${s.heroImage} ${article.image_url.endsWith('.svg') ? s.imageSvg : ''}`}
+                className={`${s.heroImage} ${article.image_url.endsWith('.svg') && article.image_url.includes('logo') ? s.imageSvg : ''}`}
               />
             )}
 
