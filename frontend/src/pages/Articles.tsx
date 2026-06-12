@@ -122,7 +122,7 @@ export default function Articles() {
                         <img
                           src={featuredArticle.image_url}
                           alt={featuredArticle.title}
-                          className={`${s.featuredImage} ${featuredArticle.image_url.endsWith('.svg') ? s.imageSvg : ''}`}
+                          className={`${s.featuredImage} ${featuredArticle.image_url.endsWith('.svg') && featuredArticle.image_url.includes('logo') ? s.imageSvg : ''}`}
                         />
                       ) : (
                         <div className={s.featuredPlaceholder}>📝</div>
@@ -171,7 +171,7 @@ export default function Articles() {
                             <img
                               src={article.image_url}
                               alt={article.title}
-                              className={`${s.cardImage} ${article.image_url.endsWith('.svg') ? s.imageSvg : ''}`}
+                              className={`${s.cardImage} ${article.image_url.endsWith('.svg') && article.image_url.includes('logo') ? s.imageSvg : ''}`}
                             />
                           ) : (
                             <div className={s.cardPlaceholder}>📝</div>
