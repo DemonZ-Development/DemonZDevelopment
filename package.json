@@ -1,0 +1,22 @@
+{
+  "name": "demonz-monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "admin-frontend",
+    "shared"
+  ],
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "typescript": "~6.0.2"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "^1.2.8",
+    "@rollup/rollup-win32-x64-msvc": "^4.63.1",
+    "lightningcss-win32-x64-msvc": "^1.33.0"
+  }
+}

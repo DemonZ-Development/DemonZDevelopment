@@ -15,10 +15,7 @@ interface ModalProps {
   size?: ModalSize;
 }
 
-/**
- * Accessible modal dialog with focus trap, backdrop click to close,
- * and Escape key handling. Used by all form/detail modals in the admin.
- */
+
 export function Modal({
   open,
   title,

@@ -6,10 +6,7 @@ interface SpotlightCardProps {
   style?: CSSProperties;
 }
 
-/**
- * Wraps a card with a Vercel-style radial spotlight that follows the cursor.
- * The wrapped element should declare `--mouse-x` and `--mouse-y` in its CSS.
- */
+
 export function SpotlightCard({ children, className, style }: SpotlightCardProps) {
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;

@@ -11,9 +11,7 @@ export interface UseToast {
 
 export const ToastContext = createContext<UseToast | null>(null);
 
-/**
- * Hook for showing toasts. Must be used inside a <ToastProvider>.
- */
+
 export function useToast(): UseToast {
   const ctx = useContext(ToastContext);
   if (!ctx) {
