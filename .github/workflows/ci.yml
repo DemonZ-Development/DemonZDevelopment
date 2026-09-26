@@ -6,7 +6,26 @@ on:
   pull_request:
     branches: [main]
 
+# Fail the whole run if any job fails, and don't queue duplicate runs.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gitleaks needs full history to scan commits, not just the tip.
+          fetch-depth: 0
+      - name: Scan working tree and full history for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
   backend:
     name: Backend (lint, typecheck, test)
     runs-on: ubuntu-latest

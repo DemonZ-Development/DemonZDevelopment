@@ -1,0 +1,25 @@
+# Local development secrets — copy to .dev.vars and fill in real values.
+# .dev.vars is gitignored. NEVER commit real credentials.
+
+# Supabase project URL, e.g. https://abcdefghijklm.supabase.co
+SUPABASE_URL=
+
+# MUST be the service_role key, NOT the anon key.
+# The anon key cannot write: RLS is enabled on every table with SELECT-only
+# policies, so all admin INSERT/UPDATE/DELETE calls fail with a policy
+# violation if this is set to an anon token.
+# Dashboard -> Project Settings -> API -> service_role
+SUPABASE_SERVICE_KEY=
+
+# Hex SHA-256 of the admin password. Generate with:
+#   npm run hash-password -- "your-password"
+ADMIN_PASSWORD_HASH=
+
+# Random high-entropy string for HS256 JWT signing. Generate with:
+#   node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+# Rotating this invalidates every issued admin token.
+JWT_SECRET=
+
+# Allows http://localhost:5173 and :5174 in the CORS allowlist.
+# Never set this in a deployed environment.
+DEV=1

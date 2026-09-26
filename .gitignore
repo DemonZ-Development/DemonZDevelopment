@@ -8,6 +8,14 @@ build/
 # Cloudflare Workers
 .wrangler/
 
+# Wrangler local secrets — NEVER commit. Copy .dev.vars.example instead.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+backend/.dev.vars
+backend/.dev.vars.*
+!backend/.dev.vars.example
+
 # logs
 *.log
 npm-debug.log*
@@ -25,6 +33,13 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# agent scratch space — contains unredacted secrets, never commit
+.agents/
+scratch/
+
+# generated brand exploration output
+generated_logos/
 
 # coverage
 coverage/
