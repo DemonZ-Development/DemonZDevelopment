@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline — DemonZ Development</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/jpeg" href="/dzd-logo.jpeg?v=2" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a0a0f;
+        color: #eee;
+        font-family: system-ui, -apple-system, sans-serif;
+        text-align: center;
+        padding: 2rem;
+      }
+      .box { max-width: 420px; }
+      h1 { font-size: 1.4rem; margin: 0 0 0.75rem; }
+      p { color: #999; line-height: 1.6; margin: 0 0 1.5rem; }
+      button {
+        padding: 0.6rem 1.4rem;
+        background: #6366f1;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h1>You're offline</h1>
+      <p>The DemonZ Development site needs a network connection to load live content. Check your connection and try again.</p>
+      <button onclick="location.reload()">Retry</button>
+    </div>
+  </body>
+</html>

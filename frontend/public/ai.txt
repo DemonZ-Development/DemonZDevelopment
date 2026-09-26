@@ -1,4 +1,6 @@
 # AI Crawler Configuration
+# Updated for current major AI crawlers. Site: https://demonz.org
+
 User-agent: GPTBot
 Disallow: /admin
 Allow: /
@@ -7,18 +9,73 @@ User-agent: ChatGPT-User
 Disallow: /admin
 Allow: /
 
+User-agent: OAI-SearchBot
+Disallow: /admin
+Allow: /
+
 User-agent: Google-Extended
 Disallow: /admin
 Allow: /
 
-User-agent: Anthropic-ai
+User-agent: ClaudeBot
 Disallow: /admin
 Allow: /
 
-User-agent: Claude-Web
+User-agent: Claude-User
+Disallow: /admin
+Allow: /
+
+User-agent: Claude-SearchBot
+Disallow: /admin
+Allow: /
+
+User-agent: anthropic-ai
 Disallow: /admin
 Allow: /
 
 User-agent: CCBot
+Disallow: /admin
+Allow: /
+
+User-agent: PerplexityBot
+Disallow: /admin
+Allow: /
+
+User-agent: Perplexity-User
+Disallow: /admin
+Allow: /
+
+User-agent: Applebot-Extended
+Disallow: /admin
+Allow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /admin
+Allow: /
+
+User-agent: Amazonbot
+Disallow: /admin
+Allow: /
+
+User-agent: cohere-ai
+Disallow: /admin
+Allow: /
+
+User-agent: YouBot
+Disallow: /admin
+Allow: /
+
+User-agent: Diffbot
+Disallow: /admin
+Allow: /
+
+User-agent: ImagesiftBot
+Disallow: /admin
+Allow: /
+
+User-agent: DuckAssistBot
 Disallow: /admin
 Allow: /
