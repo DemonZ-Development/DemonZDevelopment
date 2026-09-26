@@ -14,7 +14,7 @@ const CATEGORY_MAP: Record<string, string> = {
   all: 'All',
   games: 'Games & Mods',
   libraries: 'Libraries',
-  ai: 'AI Telemetry',
+  ai: 'AI Tools',
   utilities: 'Utilities',
 };
 
@@ -44,15 +44,15 @@ export default function Projects() {
       .slice(0, 3);
   }, [allProjects]);
 
-  // Client-side filtering & sorting for the interactive "All Releases" list
+  
   const filteredProjects = useMemo(() => {
-    // 1. Filter by category
+    
     let result = allProjects;
     if (category !== 'all') {
       result = result.filter((p) => p.category === category);
     }
 
-    // 2. Filter by search query
+    
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -63,14 +63,14 @@ export default function Projects() {
       );
     }
 
-    // 3. Sort
+    
     result = [...result].sort((a, b) => {
       if (sort === 'name') {
         return a.name.localeCompare(b.name);
       } else if (sort === 'updated') {
         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       } else {
-        // default: downloads
+        
         return (b.downloads || 0) - (a.downloads || 0);
       }
     });
@@ -80,16 +80,16 @@ export default function Projects() {
 
   return (
     <PageTransition className={styles.page}>
-      <SEO title="Projects" description="Explore our open-source utilities, game releases, and modifications." />
+      <SEO title="Projects" description="Open source tools, game releases, and developer utilities." />
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1>Projects</h1>
-          <p>Explore our open-source utilities, game releases, and modifications.</p>
+          <p>Open source tools, game releases, and developer utilities.</p>
         </div>
       </section>
 
-      {/* Filters (Moved to top) */}
+      {}
       <section className={styles.section} style={{ marginBottom: '2rem' }}>
         <div className={styles.filters}>
           <div className={styles.filtersInner}>
@@ -132,13 +132,13 @@ export default function Projects() {
         </div>
       </section>
 
-      {/* Featured Releases */}
+      {/* Featured Projects */}
       {featuredProjects.length > 0 && !search && category === 'all' && (
         <ScrollReveal>
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Featured Releases</h2>
-              <p className={styles.sectionSubtitle}>Handpicked highlights from our collection</p>
+              <h2 className={styles.sectionTitle}>Featured Projects</h2>
+              <p className={styles.sectionSubtitle}>Key tools and highlighted mods</p>
             </div>
             <div className={styles.cards}>
               {featuredProjects.map((project) => (
@@ -149,13 +149,13 @@ export default function Projects() {
         </ScrollReveal>
       )}
 
-      {/* Recent Updates */}
+      {/* Recent Projects */}
       {recentProjects.length > 0 && !search && category === 'all' && (
         <ScrollReveal>
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Recent Updates</h2>
-              <p className={styles.sectionSubtitle}>The latest versions and revisions</p>
+              <h2 className={styles.sectionTitle}>Recent Releases</h2>
+              <p className={styles.sectionSubtitle}>Recent builds, updates, and patches</p>
             </div>
             <div className={styles.cards}>
               {recentProjects.map((project) => (
@@ -166,19 +166,19 @@ export default function Projects() {
         </ScrollReveal>
       )}
 
-      {/* All Releases */}
+      {/* All Projects */}
       <section className={styles.section}>
         {(!search && category === 'all') && (
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>All Releases</h2>
-            <p className={styles.sectionSubtitle}>Browse our entire catalog of projects</p>
+            <h2 className={styles.sectionTitle}>All Projects</h2>
+            <p className={styles.sectionSubtitle}>Open source tools, mods, and libraries</p>
           </div>
         )}
 
 
 
 
-        {/* Grid/Content */}
+        {}
         <div className={styles.gridInner}>
           {loading ? (
             <div className={styles.skeletons}>

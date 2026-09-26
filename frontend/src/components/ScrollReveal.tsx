@@ -3,21 +3,21 @@ import { type ReactNode, type CSSProperties } from 'react';
 
 interface ScrollRevealProps {
   children: ReactNode;
-  /** Direction the element slides from. Default: 'up' */
+  
   direction?: 'up' | 'left' | 'right';
-  /** Delay in milliseconds before the animation starts. Default: 0 */
+  
   delay?: number;
-  /** Duration of the animation in milliseconds. Default: 600 */
+  
   duration?: number;
-  /** Distance in pixels the element travels. Default: 24 */
+  
   distance?: number;
-  /** IntersectionObserver threshold (0-1). Default: 0.15 */
+  
   threshold?: number;
-  /** Whether the animation should replay on re-entry. Default: false */
+  
   once?: boolean;
-  /** Optional className to apply to the wrapper */
+  
   className?: string;
-  /** Optional inline styles for the wrapper */
+  
   style?: CSSProperties;
 }
 

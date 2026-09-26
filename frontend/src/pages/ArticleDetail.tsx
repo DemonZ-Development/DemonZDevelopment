@@ -57,8 +57,40 @@ export default function ArticleDetail() {
         title={article.title}
         description={article.summary}
         image={article.image_url || undefined}
-        url={`https://demonzdevelopment.online/articles/${article.slug}`}
+        url={`https://demonz.org/articles/${article.slug}`}
         type="article"
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: article.title,
+          description: article.summary,
+          image: article.image_url || undefined,
+          url: `https://demonz.org/articles/${article.slug}`,
+          datePublished: article.published_at || undefined,
+          dateModified: article.published_at || article.created_at,
+          author: { '@type': 'Organization', name: 'DemonZ Development' },
+          publisher: {
+            '@type': 'Organization',
+            name: 'DemonZ Development',
+            logo: { '@type': 'ImageObject', url: 'https://demonz.org/dzd-logo.jpeg' },
+          },
+          mainEntityOfPage: `https://demonz.org/articles/${article.slug}`,
+        }) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://demonz.org/' },
+            { '@type': 'ListItem', position: 2, name: 'Articles', item: 'https://demonz.org/articles' },
+            { '@type': 'ListItem', position: 3, name: article.title, item: `https://demonz.org/articles/${article.slug}` },
+          ],
+        }) }}
       />
       <div className={s.container}>
         <Link to="/articles" className={s.backLink}>

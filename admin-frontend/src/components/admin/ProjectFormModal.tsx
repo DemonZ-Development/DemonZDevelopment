@@ -10,7 +10,7 @@ import styles from './ProjectFormModal.module.css';
 interface ProjectFormModalProps {
   open: boolean;
   token: string;
-  project: AdminProject | null; // null = creating
+  project: AdminProject | null; 
   onClose: () => void;
   onSaved: (project: AdminProject, isNew: boolean) => void;
 }

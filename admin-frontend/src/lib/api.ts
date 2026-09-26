@@ -1,6 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'https://dzd-api.demonzdevelopment.workers.dev/api';
 
-// ─── Interfaces (matching Supabase schema) ──────────────────
+
 
 export interface Project {
   id: string;
@@ -79,7 +79,7 @@ export interface Stats {
   } | null;
 }
 
-// ─── API Error ──────────────────────────────────────────────
+
 
 export class ApiError extends Error {
   status: number;
@@ -90,19 +90,26 @@ export class ApiError extends Error {
   }
 }
 
-// ─── Helpers ────────────────────────────────────────────────
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+
+async function request<T>(
+  path: string,
+  options?: RequestInit,
+  token?: string,
+): Promise<T> {
   const url = `${API_BASE}${path}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
   try {
-    const res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options,
-    });
+    const res = await fetch(url, { ...options, headers });
     if (!res.ok) {
       const body = await res.text();
       throw new ApiError(body || res.statusText, res.status);
     }
+    if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
   } catch (err) {
     if (err instanceof ApiError) throw err;
@@ -113,15 +120,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
-/**
- * Build a full URL for a backend endpoint, respecting the Vite proxy
- * in dev (when VITE_API_URL is unset) and the production API URL otherwise.
- */
+
 export function apiUrl(path: string): string {
   return `${API_BASE}${path}`;
 }
 
-// ─── Projects ───────────────────────────────────────────────
+
 
 export async function fetchProjects(
   category?: string,
@@ -267,33 +271,12 @@ export interface StudioLogInput {
  * dedicated `ApiError(..., 401)` so callers can detect "token expired"
  * and log out.
  */
-export async function adminRequest<T>(
+export function adminRequest<T>(
   path: string,
   token: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const url = `${API_BASE}${path}`;
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      ...options,
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      throw new ApiError(body || res.statusText, res.status);
-    }
-    if (res.status === 204) return undefined as T;
-    return (await res.json()) as T;
-  } catch (err) {
-    if (err instanceof ApiError) throw err;
-    throw new ApiError(
-      err instanceof Error ? err.message : 'Network error',
-      0,
-    );
-  }
+  return request<T>(path, options, token);
 }
 
 export async function adminLogin(password: string): Promise<string> {
@@ -428,45 +411,43 @@ export const deleteStudioLogEntry = (token: string, id: string) =>
   });
 
 // Media Upload
-export async function uploadMedia(token: string, file: File): Promise<string> {
+
+async function uploadToEndpoint(
+  token: string,
+  path: string,
+  file: File,
+): Promise<any> {
   const formData = new FormData();
   formData.append('file', file);
-
-  const res = await fetch(`${API_BASE}/admin/media/upload`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: formData,
   });
-
   if (!res.ok) {
     const text = await res.text();
     throw new ApiError(text || 'Upload failed', res.status);
   }
+  return res.json();
+}
 
-  const { url } = (await res.json()) as { url: string };
+export async function uploadMedia(token: string, file: File): Promise<string> {
+  const { url } = (await uploadToEndpoint(
+    token,
+    '/admin/media/upload',
+    file,
+  )) as { url: string };
   return url;
 }
 
 export async function uploadFile(token: string, file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const res = await fetch(`${API_BASE}/admin/media/upload-file`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new ApiError(text || 'Upload failed', res.status);
-  }
-
-  const { filePath } = (await res.json()) as { filePath: string };
+  const { filePath } = (await uploadToEndpoint(
+    token,
+    '/admin/media/upload-file',
+    file,
+  )) as { filePath: string };
   return filePath;
 }
 

@@ -1,0 +1,113 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 1rem 0;
+}
+
+.palette {
+  width: 100%;
+  max-width: 560px;
+  background: var(--color-bg-raised, #16161d);
+  border: 1px solid var(--color-border, #2a2a35);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--color-border, #2a2a35);
+  color: var(--color-text-muted, #888);
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text, #eee);
+  font-size: 1rem;
+  font-family: var(--font-body, sans-serif);
+}
+
+.close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted, #888);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+}
+
+.close:hover {
+  color: var(--color-text, #eee);
+}
+
+.hits {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.hit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  color: var(--color-text, #eee);
+  font-family: var(--font-body, sans-serif);
+}
+
+.hitActive {
+  background: var(--color-accent-glow, rgba(120, 120, 255, 0.12));
+}
+
+.hitLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.hitSub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #888);
+}
+
+.empty {
+  padding: 1rem;
+  color: var(--color-text-muted, #888);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.hint {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--color-border, #2a2a35);
+  color: var(--color-text-muted, #777);
+  font-size: 0.75rem;
+}
+
+.hint kbd {
+  background: var(--color-surface, #1e1e26);
+  border: 1px solid var(--color-border, #2a2a35);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+}

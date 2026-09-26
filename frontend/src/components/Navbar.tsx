@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'Projects', path: '/projects' },
   { label: 'Articles', path: '/articles' },
+  { label: 'Partnership', path: '/partnership' },
 ] as const;
 
 export default function Navbar() {
@@ -56,7 +57,7 @@ export default function Navbar() {
       <div className={`container ${styles.inner}`}>
         <NavLink to="/" aria-label="DemonZ Development — Home" end className={styles.brand}>
           <img
-            src="/dzd-logo.jpeg?v=2"
+            src="/dzd-logo.png?v=3"
             alt="DemonZ Development logo"
             width={32}
             height={32}

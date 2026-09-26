@@ -15,7 +15,7 @@ import styles from './ProjectFormModal.module.css';
 interface ArticleFormModalProps {
   open: boolean;
   token: string;
-  article: AdminArticle | null; // null = creating
+  article: AdminArticle | null; 
   onClose: () => void;
   onSaved: (article: AdminArticle, isNew: boolean) => void;
 }

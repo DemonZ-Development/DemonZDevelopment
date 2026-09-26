@@ -1,6 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'https://dzd-api.demonzdevelopment.workers.dev/api';
 
-// ─── Interfaces (matching Supabase schema) ──────────────────
+
 
 export interface Project {
   id: string;
@@ -79,7 +79,7 @@ export interface Stats {
   } | null;
 }
 
-// ─── API Error ──────────────────────────────────────────────
+
 
 export class ApiError extends Error {
   status: number;
@@ -90,7 +90,7 @@ export class ApiError extends Error {
   }
 }
 
-// ─── Helpers ────────────────────────────────────────────────
+
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
@@ -113,15 +113,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
-/**
- * Build a full URL for a backend endpoint, respecting the Vite proxy
- * in dev (when VITE_API_URL is unset) and the production API URL otherwise.
- */
+
 export function apiUrl(path: string): string {
   return `${API_BASE}${path}`;
 }
 
-// ─── Projects ───────────────────────────────────────────────
+
 
 export async function fetchProjects(
   category?: string,
@@ -198,6 +195,19 @@ export async function postContact(
 
 export async function fetchStats(): Promise<Stats> {
   return request<Stats>(`/stats?_t=${Date.now()}`);
+}
+
+// ─── Search ─────────────────────────────────────────────────
+
+export interface SearchResult {
+  projects: { slug: string; name: string; tagline: string; category: string }[];
+  articles: { slug: string; title: string; category: string | null }[];
+}
+
+export async function searchSite(query: string): Promise<SearchResult> {
+  return request<SearchResult>(
+    `/search?q=${encodeURIComponent(query)}`,
+  );
 }
 
 // ─── Studio log ─────────────────────────────────────────────

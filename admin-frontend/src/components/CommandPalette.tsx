@@ -150,7 +150,7 @@ export default function CommandPalette() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Keyboard shortcut to open
+  
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {

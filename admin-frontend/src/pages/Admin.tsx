@@ -77,7 +77,7 @@ interface StudioLogFormTarget {
   entry: AdminStudioLogEntry | null;
 }
 
-// ─── Login ─────────────────────────────────────────────────
+
 
 function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
   const toast = useToast();
@@ -128,7 +128,7 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
   );
 }
 
-// ─── Dashboard ─────────────────────────────────────────────
+
 
 function AdminDashboard({
   token,
@@ -162,7 +162,7 @@ function AdminDashboard({
   const [viewMessage, setViewMessage] = useState<AdminMessage | null>(null);
   const [changelogProject, setChangelogProject] = useState<AdminProject | null>(null);
 
-  // Fetch stats once on mount.
+  
   useEffect(() => {
     let active = true;
     setStatsLoading(true);
@@ -182,7 +182,7 @@ function AdminDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load data for the active tab.
+  
   useEffect(() => {
     let active = true;
     setTabLoading(true);
@@ -226,7 +226,7 @@ function AdminDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, tab]);
 
-  // ---- Filtering ----
+  
   const filteredProjects = useMemo(() => {
     if (!search.trim()) return projects;
     const q = search.toLowerCase();
@@ -282,11 +282,11 @@ function AdminDashboard({
     );
   }, [studioLog, search]);
 
-  // ---- Stats counts (derived from current data) ----
+  
   const pendingCommentCount = comments.filter((c) => !c.approved).length;
   const unreadMessageCount = messages.filter((m) => !m.read).length;
 
-  // ---- Action handlers ----
+  
   async function handleApproveComment(id: string) {
     try {
       await approveComment(token, id);
@@ -302,7 +302,7 @@ function AdminDashboard({
   async function handleOpenMessage(m: AdminMessage) {
     setViewMessage(m);
     if (!m.read) {
-      // Optimistic update, then server call.
+      
       setMessages((ms) => ms.map((x) => (x.id === m.id ? { ...x, read: true } : x)));
       try {
         await markMessageRead(token, m.id);
@@ -631,7 +631,7 @@ function AdminDashboard({
   );
 }
 
-// ─── Table subcomponents ──────────────────────────────────
+
 
 function ProjectsTable({
   projects,
@@ -1015,7 +1015,7 @@ function StudioLogTable({
   );
 }
 
-// ─── Backup & Restore ─────────────────────────────────────
+
 
 function BackupSection({ token }: { token: string }) {
   const toast = useToast();
@@ -1069,7 +1069,7 @@ function BackupSection({ token }: { token: string }) {
         toast.error(err instanceof Error ? err.message : 'Failed to restore backup');
       } finally {
         setRestoring(false);
-        e.target.value = ''; // Reset file input
+        e.target.value = ''; 
       }
     };
     reader.readAsText(file);
@@ -1111,7 +1111,7 @@ function BackupSection({ token }: { token: string }) {
   );
 }
 
-// ─── Root component with ToastProvider ───────────────────
+
 
 export default function Admin() {
   return (

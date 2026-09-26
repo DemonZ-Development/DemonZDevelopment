@@ -41,38 +41,37 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <p className={styles.eyebrow}>
-            DemonZ Development · since 2021
+            DemonZ Development
           </p>
           <h1 className={styles.heroHeading}>
-            Open source libraries, game mods,<br />
-            and the occasional AI experiment.
+            Open source tools, game mods,<br />
+            and local AI experiments.
           </h1>
           <p className={styles.heroSubtitle}>
-            We are six developers who ship production code for games, write
-            libraries we wish existed, and train small models on our own GPUs.
-            Most of what we release is open source. A few paid titles stay
-            closed.
+            DemonZ is an independent collective of six developers. We build
+            gameplay systems, publish the tooling we rely on in production,
+            and experiment with local machine learning models. Most of what
+            we release is public and free to use.
           </p>
           <div className={styles.heroCtaGroup}>
             <Link to="/projects" className={styles.ctaPrimary}>
-              See what we&apos;ve shipped
+              Explore projects
               <ArrowRightIcon size={16} />
             </Link>
             <Link to="/articles" className={styles.ctaSecondary}>
-              Read the blog
+              Read devlogs
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Studio log */}
+      {/* Studio Log */}
       <ScrollReveal>
         <section className={styles.logSection}>
           <div className={styles.sectionHead}>
-            <h2 className={styles.sectionHeading}>What we&apos;re working on</h2>
+            <h2 className={styles.sectionHeading}>Studio Log</h2>
             <p className={styles.sectionSub}>
-              A short, honest log of what the studio is doing right now. No
-              fabricated telemetry, no fake live counters.
+              Status updates, ongoing development, and recent changes across our projects.
             </p>
           </div>
 
@@ -112,7 +111,7 @@ export default function Home() {
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionHeading}>What we&apos;ve shipped</h2>
             <p className={styles.sectionSub}>
-              Counts pulled live from the project store and the article library.
+              Live counts across our public repositories, releases, and articles.
             </p>
           </div>
           <RealStats />
@@ -126,20 +125,18 @@ export default function Home() {
             <div className={styles.aboutText}>
               <p className={styles.eyebrow}>About the studio</p>
               <h2 className={styles.aboutHeading}>
-                We retired the agency and went back to building.
+                Focused on building games and practical tools.
               </h2>
               <p>
-                DemonZ Development started as a small group writing server
-                utilities in 2021. A few contracts and side projects later, we
-                shut down the agency work and committed to two things: shipping
-                standalone games, and publishing every tool we write that
-                isn&apos;t tied to a paid title.
+                DemonZ started in 2021 as a small group building server
+                utilities. Today, our focus is twofold: developing standalone
+                game projects, and releasing the underlying libraries and tools
+                we build along the way.
               </p>
               <p>
-                The team is six people, based in different time zones, and
-                asynchronous by default. We do not take on client work. If a
-                library here saves you an afternoon, that&apos;s the entire
-                business model.
+                We operate as an asynchronous team of six developers across
+                different time zones. If our open-source tooling solves a problem
+                or saves you time in your own builds, that is the goal.
               </p>
             </div>
             <aside className={styles.aboutAside}>
@@ -154,15 +151,7 @@ export default function Home() {
                 </div>
                 <div className={styles.factRow}>
                   <dt>Licensing</dt>
-                  <dd>Mostly open source</dd>
-                </div>
-                <div className={styles.factRow}>
-                  <dt>Client work</dt>
-                  <dd>None, by choice</dd>
-                </div>
-                <div className={styles.factRow}>
-                  <dt>Where</dt>
-                  <dd>Time zones apart, one Discord</dd>
+                  <dd>Open source</dd>
                 </div>
               </dl>
             </aside>
@@ -174,14 +163,14 @@ export default function Home() {
       <ScrollReveal>
         <section className={styles.cta}>
           <div className={styles.ctaInner}>
-            <h2 className={styles.ctaHeading}>Want to follow along?</h2>
+            <h2 className={styles.ctaHeading}>Follow our work</h2>
             <p className={styles.ctaSub}>
-              We post dev logs on the blog and ship releases to Modrinth and
-              GitHub. No newsletter, no Twitter thread wars.
+              Follow releases on GitHub and Modrinth, read technical breakdowns
+              on our blog, or chat with us in Discord.
             </p>
             <div className={styles.ctaActions}>
               <Link to="/articles" className={styles.ctaPrimary}>
-                Browse articles
+                Read devlogs
                 <ArrowRightIcon size={16} />
               </Link>
               <a

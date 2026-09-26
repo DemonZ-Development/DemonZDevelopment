@@ -9,10 +9,7 @@ interface Ripple {
   speed: number;
 }
 
-/**
- * Premium, high-performance minimal space background.
- * Uses a deep space background gradient and subtle click ripple waves.
- */
+
 export default function MatrixBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ripplesRef = useRef<Ripple[]>([]);
@@ -67,7 +64,7 @@ export default function MatrixBackground() {
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Draw Click Ripples
+      
       const ripples = ripplesRef.current;
       for (let i = ripples.length - 1; i >= 0; i--) {
         const ripple = ripples[i];

@@ -1,0 +1,237 @@
+/* ============================================================
+   Partnership Page Styles — Clean, Grounded & Authentic
+   ============================================================ */
+
+.page {
+  min-height: 100vh;
+  padding-top: clamp(5rem, 12vh, 8rem);
+  padding-bottom: clamp(4rem, 8vh, 6rem);
+}
+
+.hero {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 var(--space-6) var(--space-8);
+  text-align: left;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-text-strong);
+  margin: 0 0 var(--space-4);
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  margin: 0;
+  max-width: 58ch;
+}
+
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* ─── nexeu.zip Partner Card (No AI Glow, Clean & Grounded) ─ */
+
+.partnerCard {
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: clamp(2rem, 5vw, 2.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.partnerHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.partnerLogo {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.partnerTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.partnerSub {
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+.subGreen {
+  color: #22c55e;
+}
+
+.subBlue {
+  color: #38bdf8;
+}
+
+.partnerDescription {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.partnerDescription strong {
+  color: var(--color-text-strong);
+}
+
+.partnerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.ctaPartner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ctaGreen {
+  background: #22c55e;
+  color: #03200d;
+}
+
+.ctaGreen:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.ctaBlue {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.ctaBlue:hover {
+  background: #0369a1;
+  color: #ffffff;
+}
+
+/* ─── Discord Partnership Callout ────────────────────────── */
+
+.discordCard {
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.discordTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.discordText {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.discordActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.ctaDiscord {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.35rem;
+  background: #5865f2;
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.ctaDiscord:hover {
+  background: #4752c4;
+}
+
+.discordMeta {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}

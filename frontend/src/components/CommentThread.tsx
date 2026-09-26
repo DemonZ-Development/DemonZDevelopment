@@ -15,7 +15,7 @@ export default function CommentThread({ projectSlug }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [text, setText] = useState('');
-  const [website, setWebsite] = useState(''); // honeypot
+  const [website, setWebsite] = useState(''); 
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>(
     'idle',
@@ -42,7 +42,7 @@ export default function CommentThread({ projectSlug }: Props) {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !text.trim()) return;
-    if (website) return; // bot detected
+    if (website) return; 
     setSubmitting(true);
     setSubmitStatus('idle');
     try {

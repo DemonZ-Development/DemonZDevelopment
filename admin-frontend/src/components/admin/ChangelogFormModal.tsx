@@ -32,7 +32,7 @@ export function ChangelogFormModal({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form State
+  
   const [version, setVersion] = useState('');
   const [title, setTitle] = useState('');
   const [changes, setChanges] = useState('');
@@ -40,7 +40,7 @@ export function ChangelogFormModal({
   useEffect(() => {
     if (!open || !project) return;
     loadChangelogs();
-    // Default the version field to help user based on project's version
+    
     setVersion(project.version || '1.0.0');
     setTitle('');
     setChanges('');
@@ -52,7 +52,7 @@ export function ChangelogFormModal({
     setLoading(true);
     try {
       const data = await fetchChangelogs(project.slug);
-      // Sort by created_at descending (latest first)
+      
       const sorted = [...data].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
@@ -81,10 +81,10 @@ export function ChangelogFormModal({
         changes: changes.trim(),
       });
       toast.success('Changelog entry added!');
-      // Reset form (except version maybe, or clear)
+      
       setTitle('');
       setChanges('');
-      // Reload list
+      
       loadChangelogs();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to add changelog');
@@ -121,7 +121,7 @@ export function ChangelogFormModal({
       }
     >
       <div className={styles.container}>
-        {/* Left Column: List of existing changelogs */}
+        {}
         <div>
           <h3 className={styles.sectionTitle}>Changelog History</h3>
           <div className={styles.listSection}>
@@ -161,7 +161,7 @@ export function ChangelogFormModal({
           </div>
         </div>
 
-        {/* Right Column: Form to create new changelog */}
+        {}
         <div className={styles.formSection}>
           <h3 className={styles.sectionTitle}>Add New Release</h3>
           <form onSubmit={handleSubmit} className={styles.form}>

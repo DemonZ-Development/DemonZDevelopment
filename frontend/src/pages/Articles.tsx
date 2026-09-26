@@ -35,7 +35,7 @@ export default function Articles() {
     });
   }, [rawArticles]);
 
-  // Client-side search filtering
+  
   const filteredArticles = articles.filter((article) => {
     const query = searchQuery.toLowerCase().trim();
     if (!query) return true;
@@ -52,10 +52,10 @@ export default function Articles() {
 
   return (
     <PageTransition className={s.page}>
-      <SEO title="Articles" description="Tutorials, announcements, and insights from the team." />
+      <SEO title="Articles" description="Devlogs, technical breakdowns, and release notes." />
       <section className={s.hero}>
         <h1 className={s.heroTitle}>Articles</h1>
-        <p className={s.heroSub}>Tutorials, announcements, and insights from the team.</p>
+        <p className={s.heroSub}>Devlogs, technical breakdowns, and release notes.</p>
       </section>
 
       <div className={s.controls}>
@@ -107,12 +107,12 @@ export default function Articles() {
         </div>
       ) : (
         <>
-          {/* Featured Articles */}
+          {}
           {featuredArticle && (
             <section className={s.section}>
               <div className={s.sectionHeader}>
                 <h2 className={s.sectionTitle}>Featured Articles</h2>
-                <p className={s.sectionSubtitle}>Handpicked insights and announcements</p>
+                <p className={s.sectionSubtitle}>Featured devlogs and technical deep dives</p>
               </div>
               <ScrollReveal>
                 <Link to={`/articles/${featuredArticle.slug}`} className={s.featuredCardLink}>
@@ -154,12 +154,12 @@ export default function Articles() {
             </section>
           )}
 
-          {/* All Articles */}
+          {}
           {remainingArticles.length > 0 && (
             <section className={s.section}>
               <div className={s.sectionHeader}>
                 <h2 className={s.sectionTitle}>All Articles</h2>
-                <p className={s.sectionSubtitle}>Browse our library of tutorials and news</p>
+                <p className={s.sectionSubtitle}>All devlogs, guides, and technical updates</p>
               </div>
               <div className={s.grid}>
                 {remainingArticles.map((article) => (

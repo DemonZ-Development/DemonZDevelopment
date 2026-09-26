@@ -26,7 +26,7 @@ export default function ProjectDetail() {
 
   const handleDownloadClick = () => {
     if (!slug) return;
-    // Optimistically update download count in UI
+    
     queryClient.setQueryData(['project', slug], (old: any) => {
       if (!old) return old;
       return {
@@ -35,22 +35,22 @@ export default function ProjectDetail() {
       };
     });
 
-    // Invalidate project and stats queries to fetch fresh counts in the background
+    
     setTimeout(() => {
       queryClient.invalidateQueries({ queryKey: ['project', slug] });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
     }, 1500);
   };
 
-  // Per-project structured data (SoftwareApplication). Only rendered once
-  // we have the project loaded.
+  
+  
   const projectJsonLd = project
     ? JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
         name: project.name,
         description: project.description,
-        url: `https://demonzdevelopment.online/projects/${project.slug}`,
+        url: `https://demonz.org/projects/${project.slug}`,
         applicationCategory: project.category,
         softwareVersion: project.version,
         image: project.image_url ?? undefined,
@@ -59,6 +59,18 @@ export default function ProjectDetail() {
           '@type': 'Organization',
           name: project.author || 'DemonZ Development',
         },
+      })
+    : null;
+
+  const breadcrumbJsonLd = project
+    ? JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://demonz.org/' },
+          { '@type': 'ListItem', position: 2, name: 'Projects', item: 'https://demonz.org/projects' },
+          { '@type': 'ListItem', position: 3, name: project.name, item: `https://demonz.org/projects/${project.slug}` },
+        ],
       })
     : null;
 
@@ -95,7 +107,7 @@ export default function ProjectDetail() {
     );
   }
 
-  // We always route downloads through the backend tracker to increment download stats.
+  
   const downloadUrl = apiUrl(`/projects/download/${project.slug}`);
 
   return (
@@ -104,7 +116,7 @@ export default function ProjectDetail() {
         title={project.name}
         description={project.tagline}
         image={project.image_url || undefined}
-        url={`https://demonzdevelopment.online/projects/${project.slug}`}
+        url={`https://demonz.org/projects/${project.slug}`}
       />
       {projectJsonLd && (
         <script
@@ -112,12 +124,18 @@ export default function ProjectDetail() {
           dangerouslySetInnerHTML={{ __html: projectJsonLd }}
         />
       )}
+      {breadcrumbJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: breadcrumbJsonLd }}
+        />
+      )}
       <div className={styles.container}>
         <Link to="/projects" className={styles.backLink}>
           ← Back to Projects
         </Link>
 
-        {/* Header */}
+        {}
         <div className={styles.header}>
           <div className={styles.imageWrap}>
             {project.image_url ? (
@@ -164,7 +182,7 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        {/* Tabs */}
+        {}
         <div className={styles.tabs} role="tablist">
           {(['overview', 'changelog'] as TabType[]).map((t) => (
             <button
@@ -179,7 +197,7 @@ export default function ProjectDetail() {
           ))}
         </div>
 
-        {/* Content */}
+        {}
         <div className={styles.body}>
           <div className={styles.mainCol}>
             {tab === 'overview' && (

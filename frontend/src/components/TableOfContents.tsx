@@ -14,9 +14,9 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
     return matches.map((match) => {
       const level = match[1].length;
       let text = match[2].trim();
-      // Remove GitHub alerts prefixes if any
+      
       text = text.replace(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/i, '');
-      // Simple slugify matching rehype-slug
+      
       const id = text
         .toLowerCase()
         .replace(/[^\w\s-]/g, '')
@@ -38,7 +38,7 @@ export default function TableOfContents({ content }: TableOfContentsProps) {
       { rootMargin: '0px 0px -80% 0px' }
     );
 
-    // Wait a tick for markdown to render
+    
     setTimeout(() => {
       headings.forEach((heading) => {
         const el = document.getElementById(heading.id);
