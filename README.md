@@ -1,7 +1,7 @@
 # DemonZ Development
 
 Public website for DemonZ Development — open source projects, articles, and
-AI research, deployed at <https://demonzdevelopment.online>.
+AI research, deployed at <https://demonz.org>.
 
 ## Repository layout
 
@@ -41,7 +41,7 @@ npm run build
 | `SUPABASE_SERVICE_KEY` | Service role key (NEVER expose to the client) |
 | `ADMIN_PASSWORD_HASH` | SHA-256 hex of the admin password |
 | `JWT_SECRET` | Random secret used to sign admin JWTs |
-| `CORS_ORIGIN` | Allowed origin (e.g. `https://demonzdevelopment.online`) |
+| `CORS_ORIGIN` | Allowed origin (e.g. `https://demonz.org`) |
 | `DEV` | Set to `1` in dev to allow `http://localhost:5173` in CORS |
 
 Generate a fresh password hash:
@@ -84,7 +84,7 @@ A single GitHub Action runs on push/PR to `main`:
   - Root directory: `frontend`
   - Build command: `npm run build`
   - Build output directory: `dist`
-  - Custom Domain: Bind your custom domain (e.g. `demonzdevelopment.online`) in the Cloudflare Pages settings.
+  - Custom Domain: Bind your custom domain (e.g. `demonz.org`) in the Cloudflare Pages settings.
 - **Admin Panel (`admin-frontend/`)**: Cloudflare Pages (pages.dev Deployment)
   - Root directory: `admin-frontend`
   - Build command: `npm run build`
