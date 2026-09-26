@@ -1,11 +1,4 @@
-/**
- * In-memory token bucket rate limiter.
- *
- * Cloudflare Workers share isolate state across requests served by the same
- * isolate, so a Map is fine for per-IP limiting within a single isolate. For
- * global enforcement across regions, swap this for Cloudflare KV or Durable
- * Objects.
- */
+
 interface Bucket {
   tokens: number;
   lastRefill: number;
@@ -14,9 +7,9 @@ interface Bucket {
 const buckets = new Map<string, Bucket>();
 
 export interface RateLimitOptions {
-  /** Maximum tokens in the bucket. */
+  
   capacity: number;
-  /** Tokens added per second. */
+  
   refillRate: number;
 }
 

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cache } from 'hono/cache';
 import { supabase } from '../lib/supabase';
 import { sanitize, isValidEmail } from '../lib/sanitize';
+import { validateContentType, sanitizeNameParam } from '../lib/mediaValidation';
 import { checkRateLimit, clientIp } from '../lib/rateLimit';
 import type { Env } from '../types';
 
@@ -11,17 +12,17 @@ const cache30s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=30' });
 const cache60s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=60' });
 const cache7Days = cache({ cacheName: 'dzd-images', cacheControl: 'public, max-age=604800, must-revalidate' });
 
-// ---------------------------------------------------------------------------
-// Health
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/health', (c) =>
   c.json({ status: 'ok', timestamp: new Date().toISOString() }),
 );
 
-// ---------------------------------------------------------------------------
-// Stats (for Home page real-stats widget)
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/stats', cache60s, async (c) => {
   const [projCount, artCount, comCount, totalDownloads, latestProject, latestArticle] =
@@ -60,9 +61,9 @@ publicRoutes.get('/stats', cache60s, async (c) => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Projects
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/projects', cache60s, async (c) => {
   const category = c.req.query('category');
@@ -105,7 +106,7 @@ publicRoutes.get('/projects/:slug', cache60s, async (c) => {
   return c.json(data);
 });
 
-// Download handler – atomic increment + redirect to file/url.
+
 publicRoutes.get('/projects/download/:slug', async (c) => {
   const slug = c.req.param('slug');
 
@@ -121,17 +122,17 @@ publicRoutes.get('/projects/download/:slug', async (c) => {
 
   if (!project) return c.json({ error: 'Project not found' }, 404);
 
-  // Attempt an atomic increment via a Postgres RPC. The corresponding
-  // function (in supabase/migrations/) looks like:
-  //
-  //   create function increment_downloads(project_slug text)
-  //   returns void as $$
-  //     update projects set downloads = downloads + 1
-  //     where slug = project_slug;
-  //   $$ language sql;
-  //
-  // If the function isn't installed yet, fall back to read-modify-write
-  // so downloads still work — just not race-safe.
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   const rpcRes = await supabase(c.env, 'rpc/increment_downloads', {
     method: 'POST',
     body: { project_slug: slug },
@@ -172,9 +173,9 @@ publicRoutes.get('/projects/download/:slug', async (c) => {
   return c.json({ error: 'No download available' }, 404);
 });
 
-// ---------------------------------------------------------------------------
-// Changelogs
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/projects/:slug/changelogs', cache60s, async (c) => {
   const slug = c.req.param('slug');
@@ -193,9 +194,9 @@ publicRoutes.get('/projects/:slug/changelogs', cache60s, async (c) => {
   return c.json(data);
 });
 
-// ---------------------------------------------------------------------------
-// Comments
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/projects/:slug/comments', cache30s, async (c) => {
   const slug = c.req.param('slug');
@@ -260,9 +261,9 @@ publicRoutes.post('/projects/:slug/comments', async (c) => {
   return c.json({ message: 'Comment submitted for moderation' }, 201);
 });
 
-// ---------------------------------------------------------------------------
-// Articles
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/articles', async (c) => {
   const category = c.req.query('category');
@@ -290,9 +291,9 @@ publicRoutes.get('/articles/:slug', async (c) => {
   return c.json(data);
 });
 
-// ---------------------------------------------------------------------------
-// Contact
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.post('/contact', async (c) => {
   const body = await c.req.json<{ name: string; email: string; message: string }>();
@@ -326,9 +327,9 @@ publicRoutes.post('/contact', async (c) => {
   return c.json({ message: 'Message sent successfully' }, 201);
 });
 
-// ---------------------------------------------------------------------------
-// Studio log
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/studio-log', cache60s, async (c) => {
   const { data, error } = await supabase(
@@ -339,9 +340,9 @@ publicRoutes.get('/studio-log', cache60s, async (c) => {
   return c.json(data);
 });
 
-// ---------------------------------------------------------------------------
-// Search
-// ---------------------------------------------------------------------------
+
+
+
 
 publicRoutes.get('/search', cache60s, async (c) => {
   const q = c.req.query('q');
@@ -364,6 +365,69 @@ publicRoutes.get('/search', cache60s, async (c) => {
   });
 });
 
+
+
+
+
+publicRoutes.get('/feed.xml', async (c) => {
+  const { data, error } = await supabase<{
+    slug: string;
+    title: string;
+    summary: string;
+    content: string;
+    category: string | null;
+    published_at: string | null;
+    created_at: string;
+  }>(
+    c.env,
+    'articles?published=eq.true&select=slug,title,summary,content,category,published_at,created_at&order=published_at.desc&limit=30',
+  );
+  if (error) return c.json({ error: error.message }, 500);
+
+  const articles = Array.isArray(data) ? data : [];
+  const host = 'https://demonz.org';
+
+  const escapeXml = (s: string) =>
+    s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+
+  const entries = articles
+    .map((a) => {
+      const date = a.published_at || a.created_at;
+      const link = `${host}/articles/${a.slug}`;
+      return `    <item>
+      <title>${escapeXml(a.title)}</title>
+      <link>${link}</link>
+      <guid isPermaLink="true">${link}</guid>
+      <pubDate>${new Date(date).toUTCString()}</pubDate>
+      ${a.category ? `<category>${escapeXml(a.category)}</category>` : ''}
+      <description>${escapeXml(a.summary || a.content.slice(0, 300))}</description>
+    </item>`;
+    })
+    .join('\n');
+
+  const feed = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>DemonZ Development — Articles</title>
+    <link>${host}/articles</link>
+    <description>Tutorials, announcements, and insights from the DemonZ Development team.</description>
+    <language>en-us</language>
+    <atom:link href="${host}/api/feed.xml" rel="self" type="application/rss+xml" />
+${entries}
+  </channel>
+</rss>`;
+
+  return c.text(feed, 200, {
+    'Content-Type': 'application/rss+xml; charset=utf-8',
+    'Cache-Control': 'public, max-age=1800',
+  });
+});
+
 // Dynamic XML Sitemap for SEO & Search Engine / AI Crawlers
 publicRoutes.get('/sitemap.xml', async (c) => {
   const [projectsRes, articlesRes] = await Promise.all([
@@ -374,7 +438,7 @@ publicRoutes.get('/sitemap.xml', async (c) => {
   const projects = Array.isArray(projectsRes.data) ? projectsRes.data : [];
   const articles = Array.isArray(articlesRes.data) ? articlesRes.data : [];
 
-  const host = 'https://demonzdevelopment.online';
+  const host = 'https://demonz.org';
   
   // Base URLs
   const urls = [
@@ -427,11 +491,17 @@ ${urls
 // ---------------------------------------------------------------------------
 
 publicRoutes.get('/images/:name', cache7Days, async (c) => {
-  const name = c.req.param('name');
+  const rawName = c.req.param('name');
+
+  // Sanitize the name param to prevent path traversal and injection.
+  const name = sanitizeNameParam(rawName);
+  if (!name) {
+    return c.text('Image not found', 404);
+  }
 
   const res = await supabase<{ name: string; content_type: string; data: string }>(
     c.env,
-    `images?select=name,content_type,data&name=eq.${name}`,
+    `images?select=name,content_type,data&name=eq.${encodeURIComponent(name)}`,
   );
 
   if (res.error || !Array.isArray(res.data) || res.data.length === 0) {
@@ -439,6 +509,11 @@ publicRoutes.get('/images/:name', cache7Days, async (c) => {
   }
 
   const img = res.data[0];
+
+  // Only serve whitelisted image content types — never arbitrary types.
+  if (!validateContentType(img.content_type)) {
+    return c.text('Unsupported content type', 415);
+  }
 
   // Decode base64 to binary bytes
   const binaryString = atob(img.data);

@@ -3,14 +3,15 @@ import { supabase } from '../lib/supabase';
 import { signJWT } from '../lib/jwt';
 import { sha256Hex, timingSafeEqual } from '../lib/crypto';
 import { checkRateLimit, clientIp } from '../lib/rateLimit';
+import { validateUpload, ALLOWED_MIME_TYPES } from '../lib/mediaValidation';
 import { adminAuth } from '../middleware/auth';
 import type { Env } from '../types';
 
 const adminRoutes = new Hono<{ Bindings: Env }>();
 
-// ---------------------------------------------------------------------------
-// Login
-// ---------------------------------------------------------------------------
+
+
+
 
 adminRoutes.post('/login', async (c) => {
   const ip = clientIp(c.req.raw);
@@ -37,9 +38,9 @@ adminRoutes.post('/login', async (c) => {
   return c.json({ token });
 });
 
-// ---------------------------------------------------------------------------
-// Authenticated routes
-// ---------------------------------------------------------------------------
+
+
+
 
 adminRoutes.use('/projects', adminAuth);
 adminRoutes.use('/projects/*', adminAuth);
@@ -56,7 +57,7 @@ adminRoutes.use('/studio-log', adminAuth);
 adminRoutes.use('/studio-log/*', adminAuth);
 adminRoutes.use('/backup/*', adminAuth);
 
-// Projects CRUD
+
 adminRoutes.get('/projects', async (c) => {
   const { data, error } = await supabase(
     c.env,
@@ -94,7 +95,7 @@ adminRoutes.delete('/projects/:id', async (c) => {
   return c.json({ message: 'Deleted' });
 });
 
-// Articles CRUD (returns both published + drafts)
+
 adminRoutes.get('/articles', async (c) => {
   const { data, error } = await supabase(
     c.env,
@@ -135,7 +136,7 @@ adminRoutes.delete('/articles/:id', async (c) => {
   return c.json({ message: 'Deleted' });
 });
 
-// Changelogs CRUD
+
 adminRoutes.post('/changelogs', async (c) => {
   const body = await c.req.json();
   const { data, error } = await supabase(c.env, 'changelogs', {
@@ -155,7 +156,7 @@ adminRoutes.delete('/changelogs/:id', async (c) => {
   return c.json({ message: 'Deleted' });
 });
 
-// Comments moderation
+
 adminRoutes.get('/comments', async (c) => {
   const { data, error } = await supabase(
     c.env,
@@ -184,7 +185,7 @@ adminRoutes.delete('/comments/:id', async (c) => {
   return c.json({ message: 'Deleted' });
 });
 
-// Contact messages
+
 adminRoutes.get('/messages', async (c) => {
   const { data, error } = await supabase(
     c.env,
@@ -213,7 +214,7 @@ adminRoutes.delete('/messages/:id', async (c) => {
   return c.json({ message: 'Deleted' });
 });
 
-// Studio log CRUD
+
 adminRoutes.get('/studio-log', async (c) => {
   const { data, error } = await supabase(
     c.env,
@@ -253,7 +254,46 @@ adminRoutes.delete('/studio-log/:id', async (c) => {
   return c.json({ message: 'Deleted' });
 });
 
-// File upload (ZIPs, JARs, builds, etc.)
+
+
+
+
+async function uploadToStorage(
+  c: any,
+  file: File,
+  bucket: string,
+): Promise<{ fileName: string }> {
+  // Validate against MIME whitelist + size cap; extension is derived from the
+  // validated MIME type, never from the user-supplied filename.
+  const validation = validateUpload(file, ALLOWED_MIME_TYPES);
+  if (!validation.ok) {
+    throw new Error(validation.error || 'Invalid file');
+  }
+  const sanitizedName = file.name
+    .replace(/\.[^/.]+$/, "") 
+    .replace(/[^a-zA-Z0-9]/g, '-')
+    .toLowerCase() || 'file';
+  const fileName = `${Date.now()}-${sanitizedName}${validation.extension}`;
+
+  const uploadUrl = `${c.env.SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`;
+  const arrayBuffer = await file.arrayBuffer();
+  const res = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      apikey: c.env.SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${c.env.SUPABASE_SERVICE_KEY}`,
+      'Content-Type': file.type || 'application/octet-stream',
+    },
+    body: arrayBuffer,
+  });
+  if (!res.ok) {
+    const errMsg = await res.text();
+    throw new Error(`Storage upload failed: ${errMsg}`);
+  }
+  return { fileName };
+}
+
+
 adminRoutes.post('/media/upload-file', async (c) => {
   const body = await c.req.parseBody();
   const file = body.file;
@@ -261,32 +301,8 @@ adminRoutes.post('/media/upload-file', async (c) => {
     return c.json({ error: 'No file uploaded' }, 400);
   }
 
-  const extension = file.name.split('.').pop() || 'zip';
-  const sanitizedName = file.name
-    .replace(/\.[^/.]+$/, "") // remove extension
-    .replace(/[^a-zA-Z0-9]/g, '-')
-    .toLowerCase();
-  const fileName = `${Date.now()}-${sanitizedName}.${extension}`;
-
-  const uploadUrl = `${c.env.SUPABASE_URL}/storage/v1/object/downloads/${fileName}`;
-  
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        apikey: c.env.SUPABASE_SERVICE_KEY,
-        Authorization: `Bearer ${c.env.SUPABASE_SERVICE_KEY}`,
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-      body: arrayBuffer,
-    });
-
-    if (!res.ok) {
-      const errMsg = await res.text();
-      return c.json({ error: `Storage upload failed: ${errMsg}` }, 500);
-    }
-
+    const { fileName } = await uploadToStorage(c, file, 'downloads');
     const filePath = `downloads/${fileName}`;
     return c.json({ filePath }, 201);
   } catch (err) {
@@ -294,7 +310,7 @@ adminRoutes.post('/media/upload-file', async (c) => {
   }
 });
 
-// Media upload
+
 adminRoutes.post('/media/upload', async (c) => {
   const body = await c.req.parseBody();
   const file = body.file;
@@ -302,32 +318,8 @@ adminRoutes.post('/media/upload', async (c) => {
     return c.json({ error: 'No file uploaded' }, 400);
   }
 
-  const extension = file.name.split('.').pop() || 'png';
-  const sanitizedName = file.name
-    .replace(/\.[^/.]+$/, "") // remove extension
-    .replace(/[^a-zA-Z0-9]/g, '-')
-    .toLowerCase();
-  const fileName = `${Date.now()}-${sanitizedName}.${extension}`;
-
-  const uploadUrl = `${c.env.SUPABASE_URL}/storage/v1/object/media/${fileName}`;
-  
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const res = await fetch(uploadUrl, {
-      method: 'POST',
-      headers: {
-        apikey: c.env.SUPABASE_SERVICE_KEY,
-        Authorization: `Bearer ${c.env.SUPABASE_SERVICE_KEY}`,
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-      body: arrayBuffer,
-    });
-
-    if (!res.ok) {
-      const errMsg = await res.text();
-      return c.json({ error: `Storage upload failed: ${errMsg}` }, 500);
-    }
-
+    const { fileName } = await uploadToStorage(c, file, 'media');
     const publicUrl = `${c.env.SUPABASE_URL}/storage/v1/object/public/media/${fileName}`;
     return c.json({ url: publicUrl }, 201);
   } catch (err) {
@@ -335,9 +327,9 @@ adminRoutes.post('/media/upload', async (c) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Backup & Restore
-// ---------------------------------------------------------------------------
+
+
+
 
 adminRoutes.get('/backup/export', async (c) => {
   const [projects, articles, comments, messages, studioLog, changelogs] = await Promise.all([

@@ -4,7 +4,7 @@ export interface SupabaseOptions {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
-  /** When true, response is treated as a count-only query (no body parsed). */
+
   countOnly?: boolean;
 }
 

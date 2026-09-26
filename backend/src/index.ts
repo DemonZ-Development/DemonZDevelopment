@@ -1,19 +1,35 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import publicRoutes from './routes/public';
 import adminRoutes from './routes/admin';
 import type { Env } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// ---------------------------------------------------------------------------
-// CORS
-// ---------------------------------------------------------------------------
+// Without this, any thrown error (a malformed JSON body, a PostgREST timeout)
+// escapes as a plaintext 500 and leaks the exception message.
+app.onError((err, c) => {
+  const isJsonSyntax = err instanceof SyntaxError;
+  if (isJsonSyntax) {
+    return c.json({ error: 'Malformed JSON in request body' }, 400);
+  }
+  console.error('unhandled error', c.req.method, c.req.path, err);
+  return c.json({ error: 'Internal server error' }, 500);
+});
 
+app.notFound((c) => c.json({ error: 'Not found' }, 404));
+
+
+
+
+
+app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
   const origins = [
     c.env.CORS_ORIGIN,
-    'https://demonzdevelopment.online',
+    'https://demonz.org',
+    'https://www.demonz.org',
     'https://demonz-public.pages.dev',
     'https://demonz-admin.pages.dev'
   ];
@@ -23,7 +39,7 @@ app.use('*', async (c, next) => {
     origins.push('http://localhost:5174');
   }
 
-  // Filter out duplicate or empty values
+  
   const uniqueOrigins = Array.from(new Set(origins.filter((o): o is string => !!o)));
 
   const corsMiddleware = cors({
@@ -35,14 +51,11 @@ app.use('*', async (c, next) => {
   return corsMiddleware(c, next);
 });
 
-// ---------------------------------------------------------------------------
-// Routes
-// ---------------------------------------------------------------------------
+
+
+
 
 app.route('/api', publicRoutes);
 app.route('/api/admin', adminRoutes);
-
-// Catch-all 404
-app.all('*', (c) => c.json({ error: 'Not found' }, 404));
 
 export default app;
