@@ -1,1 +1,1 @@
-export * from '../../../../shared/ui/PageShell';
+export { PageShell } from '../../../../shared/ui/PageShell';

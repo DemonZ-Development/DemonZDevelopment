@@ -416,7 +416,7 @@ async function uploadToEndpoint(
   token: string,
   path: string,
   file: File,
-): Promise<any> {
+): Promise<unknown> {
   const formData = new FormData();
   formData.append('file', file);
   const res = await fetch(`${API_BASE}${path}`, {
@@ -453,9 +453,9 @@ export async function uploadFile(token: string, file: File): Promise<string> {
 
 // Backup & Restore
 export const exportBackup = (token: string) =>
-  adminRequest<any>('/admin/backup/export', token);
+  adminRequest<unknown>('/admin/backup/export', token);
 
-export const restoreBackup = (token: string, data: any) =>
+export const restoreBackup = (token: string, data: unknown) =>
   adminRequest<{ message: string }>('/admin/backup/restore', token, {
     method: 'POST',
     body: JSON.stringify(data),

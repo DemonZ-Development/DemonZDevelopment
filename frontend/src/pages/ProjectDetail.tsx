@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchProject, apiUrl } from '../lib/api';
+import { fetchProject, apiUrl, type Project } from '../lib/api';
 import Markdown from '../components/Markdown';
 import SEO from '../components/SEO';
 import PageTransition from '../components/PageTransition';
@@ -27,7 +27,7 @@ export default function ProjectDetail() {
   const handleDownloadClick = () => {
     if (!slug) return;
     
-    queryClient.setQueryData(['project', slug], (old: any) => {
+    queryClient.setQueryData(['project', slug], (old: Project) => {
       if (!old) return old;
       return {
         ...old,
