@@ -47,6 +47,10 @@ coverage/
 # typescript build info
 *.tsbuildinfo
 
+# database backups
+backend/db/backups/
+backups/
+
 # misc
 .cache/
 .tmp/
