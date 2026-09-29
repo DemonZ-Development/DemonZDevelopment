@@ -16,7 +16,7 @@
     "pg": "^8.23.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260926.1",
+    "@cloudflare/workers-types": "^5.20260928.1",
     "@types/node": "^26.4.0",
     "@types/pg": "^8.23.1",
     "tsx": "^4.19.0",

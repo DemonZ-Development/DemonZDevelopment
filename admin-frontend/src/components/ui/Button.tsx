@@ -1,1 +1,1 @@
-export * from '../../../../shared/ui/Button';
+export { Button } from '../../../../shared/ui/Button';
