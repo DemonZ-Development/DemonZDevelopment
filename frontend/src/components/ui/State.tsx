@@ -1,1 +1,1 @@
-export { EmptyState, ErrorState, LoadingState} from '../../../../shared/ui/State';
+export { EmptyState, ErrorState, LoadingState } from '../../../../shared/ui/State';

@@ -18,16 +18,16 @@ export default function Markdown({ content }: MarkdownProps) {
         remarkPlugins={[remarkGfm, remarkGithubAlerts]}
         rehypePlugins={[rehypeRaw, rehypeSlug]}
         components={{
-          h1: ({...props }) => <h1 className={s.h1} {...props} />,
-          h2: ({...props }) => <h2 className={s.h2} {...props} />,
-          h3: ({...props }) => <h3 className={s.h3} {...props} />,
-          p: ({...props }) => <p className={s.paragraph} {...props} />,
-          ul: ({...props }) => <ul className={s.listUl} {...props} />,
-          ol: ({...props }) => <ol className={s.listOl} {...props} />,
-          li: ({...props }) => <li className={s.listItem} {...props} />,
-          blockquote: ({...props }) => <blockquote className={s.blockquote} {...props} />,
-          pre: ({...props }) => <pre className={s.codeBlock} {...props} />,
-          code: ({className, ...props }) => {
+          h1: ({ node: _node, ...props }) => <h1 className={s.h1} {...props} />,
+          h2: ({ node: _node, ...props }) => <h2 className={s.h2} {...props} />,
+          h3: ({ node: _node, ...props }) => <h3 className={s.h3} {...props} />,
+          p: ({ node: _node, ...props }) => <p className={s.paragraph} {...props} />,
+          ul: ({ node: _node, ...props }) => <ul className={s.listUl} {...props} />,
+          ol: ({ node: _node, ...props }) => <ol className={s.listOl} {...props} />,
+          li: ({ node: _node, ...props }) => <li className={s.listItem} {...props} />,
+          blockquote: ({ node: _node, ...props }) => <blockquote className={s.blockquote} {...props} />,
+          pre: ({ node: _node, ...props }) => <pre className={s.codeBlock} {...props} />,
+          code: ({ node: _node, className, ...props }) => {
             const isInline = !className?.includes('language-');
             return isInline ? (
               <code className={s.inlineCode} {...props} />
@@ -35,8 +35,8 @@ export default function Markdown({ content }: MarkdownProps) {
               <code className={className} {...props} />
             );
           },
-          a: ({...props }) => <a className={s.link} target="_blank" rel="noopener noreferrer" {...props} />,
-          img: ({...props }) => {
+          a: ({ node: _node, ...props }) => <a className={s.link} target="_blank" rel="noopener noreferrer" {...props} />,
+          img: ({ node: _node, ...props }) => {
             const widthVal = props.width ? parseInt(String(props.width), 10) : null;
             const isSmallIcon = widthVal && widthVal < 150;
             return (
@@ -58,13 +58,13 @@ export default function Markdown({ content }: MarkdownProps) {
               />
             );
           },
-          hr: ({...props }) => <hr className={s.hr} {...props} />,
-          table: ({...props }) => <div className={s.tableWrapper}><table className={s.table} {...props} /></div>,
-          thead: ({...props }) => <thead className={s.thead} {...props} />,
-          tbody: ({...props }) => <tbody className={s.tbody} {...props} />,
-          tr: ({...props }) => <tr className={s.tr} {...props} />,
-          th: ({...props }) => <th className={s.th} {...props} />,
-          td: ({...props }) => <td className={s.td} {...props} />,
+          hr: ({ node: _node, ...props }) => <hr className={s.hr} {...props} />,
+          table: ({ node: _node, ...props }) => <div className={s.tableWrapper}><table className={s.table} {...props} /></div>,
+          thead: ({ node: _node, ...props }) => <thead className={s.thead} {...props} />,
+          tbody: ({ node: _node, ...props }) => <tbody className={s.tbody} {...props} />,
+          tr: ({ node: _node, ...props }) => <tr className={s.tr} {...props} />,
+          th: ({ node: _node, ...props }) => <th className={s.th} {...props} />,
+          td: ({ node: _node, ...props }) => <td className={s.td} {...props} />,
         }}
       >
         {content}

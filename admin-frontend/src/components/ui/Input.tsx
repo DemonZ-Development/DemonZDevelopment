@@ -1,6 +1,7 @@
 import type {
   InputHTMLAttributes,
   TextareaHTMLAttributes,
+  SelectHTMLAttributes,
   ReactNode,
 } from 'react';
 import { useId } from 'react';
@@ -65,7 +66,7 @@ export function Textarea({ label, helperText, id, className, ...rest }: Textarea
   );
 }
 
-interface SelectProps extends InputHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   helperText?: string;
   options: { value: string; label: string }[];

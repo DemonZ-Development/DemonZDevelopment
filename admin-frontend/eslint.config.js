@@ -24,6 +24,15 @@ export default defineConfig([
       // alternative (key-prop remount) is heavier. Re-enable selectively
       // for components that don't fetch on mount.
       'react-hooks/set-state-in-effect': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
 ]);

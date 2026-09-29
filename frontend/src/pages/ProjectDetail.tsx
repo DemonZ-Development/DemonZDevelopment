@@ -27,7 +27,7 @@ export default function ProjectDetail() {
   const handleDownloadClick = () => {
     if (!slug) return;
     
-    queryClient.setQueryData(['project', slug], (old: Project) => {
+    queryClient.setQueryData(['project', slug], (old: Project | undefined) => {
       if (!old) return old;
       return {
         ...old,
