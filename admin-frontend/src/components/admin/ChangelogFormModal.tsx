@@ -58,7 +58,7 @@ export function ChangelogFormModal({
       );
       setChangelogs(sorted);
     } catch (err) {
-      toast.error('Failed to load changelogs');
+      toast.error(err instanceof Error ? err.message : 'Failed to load changelogs:');
     } finally {
       setLoading(false);
     }
