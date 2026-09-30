@@ -26,10 +26,10 @@ describe('checkRateLimit', () => {
 
   it('refills tokens over time', async () => {
     const key = `test-c-${Date.now()}`;
-    const opts = { capacity: 1, refillRate: 1000 }; // 1000 tokens/sec
+    const opts = { capacity: 1, refillRate: 20 }; // 1 token per 50ms
     expect(checkRateLimit(key, opts).allowed).toBe(true);
     expect(checkRateLimit(key, opts).allowed).toBe(false);
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => setTimeout(r, 70));
     expect(checkRateLimit(key, opts).allowed).toBe(true);
   });
 });

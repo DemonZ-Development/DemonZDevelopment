@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { cache } from 'hono/cache';
-import { supabase } from '../lib/supabase';
+import { query, queryOne, execute } from '../lib/db';
 import { sanitize, isValidEmail } from '../lib/sanitize';
 import { validateContentType, sanitizeNameParam } from '../lib/mediaValidation';
 import { checkRateLimit, clientIp } from '../lib/rateLimit';
@@ -12,30 +12,33 @@ const cache30s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=30' });
 const cache60s = cache({ cacheName: 'dzd-cache', cacheControl: 'max-age=60' });
 const cache7Days = cache({ cacheName: 'dzd-images', cacheControl: 'public, max-age=604800, must-revalidate' });
 
-
-
-
-
+// Health check
 publicRoutes.get('/health', (c) =>
   c.json({ status: 'ok', timestamp: new Date().toISOString() }),
 );
 
-
-
-
-
+// Site statistics
 publicRoutes.get('/stats', cache60s, async (c) => {
-  const [projCount, artCount, comCount, totalDownloads, latestProject, latestArticle] =
-    await Promise.all([
-      supabase(c.env, 'projects?select=id', { countOnly: true }),
-      supabase(c.env, 'articles?published=eq.true&select=id', { countOnly: true }),
-      supabase(c.env, 'comments?approved=eq.true&select=id', { countOnly: true }),
-      supabase<{ downloads: number }>(c.env, 'projects?select=downloads&limit=1000'),
-      supabase<{ slug: string; name: string; tagline: string; image_url: string | null }>(
+  try {
+    const [stats, latestProj, latestArt] = await Promise.all([
+      queryOne<{
+        project_count: number;
+        article_count: number;
+        comment_count: number;
+        total_downloads: number;
+      }>(
         c.env,
-        'projects?select=slug,name,tagline,image_url&order=updated_at.desc&limit=1',
+        `SELECT
+          (SELECT count(*)::int FROM projects) as project_count,
+          (SELECT count(*)::int FROM articles WHERE published = true) as article_count,
+          (SELECT count(*)::int FROM comments WHERE approved = true) as comment_count,
+          (SELECT COALESCE(sum(downloads), 0)::int FROM projects) as total_downloads`,
       ),
-      supabase<{
+      queryOne<{ slug: string; name: string; tagline: string; image_url: string | null }>(
+        c.env,
+        'SELECT slug, name, tagline, image_url FROM projects ORDER BY updated_at DESC LIMIT 1',
+      ),
+      queryOne<{
         slug: string;
         title: string;
         summary: string;
@@ -43,178 +46,195 @@ publicRoutes.get('/stats', cache60s, async (c) => {
         published_at: string | null;
       }>(
         c.env,
-        'articles?published=eq.true&select=slug,title,summary,category,published_at&order=published_at.desc&limit=1',
+        'SELECT slug, title, summary, category, published_at FROM articles WHERE published = true ORDER BY published_at DESC LIMIT 1',
       ),
     ]);
 
-  const sum = Array.isArray(totalDownloads.data)
-    ? totalDownloads.data.reduce((acc, p) => acc + (p.downloads ?? 0), 0)
-    : 0;
-
-  return c.json({
-    projectCount: projCount.count ?? 0,
-    articleCount: artCount.count ?? 0,
-    commentCount: comCount.count ?? 0,
-    totalDownloads: sum,
-    latestProject: Array.isArray(latestProject.data) ? latestProject.data[0] ?? null : null,
-    latestArticle: Array.isArray(latestArticle.data) ? latestArticle.data[0] ?? null : null,
-  });
+    return c.json({
+      projectCount: stats?.project_count ?? 0,
+      articleCount: stats?.article_count ?? 0,
+      commentCount: stats?.comment_count ?? 0,
+      totalDownloads: stats?.total_downloads ?? 0,
+      latestProject: latestProj ?? null,
+      latestArticle: latestArt ?? null,
+    });
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// List projects
 publicRoutes.get('/projects', cache60s, async (c) => {
   const category = c.req.query('category');
   const search = c.req.query('search');
   const limit = parseInt(c.req.query('limit') || '50', 10);
   const sort = c.req.query('sort') || 'downloads';
 
-  let path =
-    'projects?select=id,slug,name,tagline,category,version,downloads,image_url,is_featured,created_at,updated_at';
+  const conditions: string[] = [];
+  const params: unknown[] = [];
 
   if (category && category !== 'all') {
-    path += `&category=eq.${encodeURIComponent(category)}`;
+    params.push(category);
+    conditions.push(`category = $${params.length}`);
   }
+
   if (search) {
-    path += `&or=(name.ilike.*${encodeURIComponent(search)}*,tagline.ilike.*${encodeURIComponent(search)}*,description.ilike.*${encodeURIComponent(search)}*)`;
+    params.push(`%${search}%`);
+    const idx = params.length;
+    conditions.push(`(name ILIKE $${idx} OR tagline ILIKE $${idx} OR description ILIKE $${idx})`);
   }
 
-  const orderCol =
-    sort === 'name'
-      ? 'name.asc'
-      : sort === 'updated'
-        ? 'updated_at.desc'
-        : 'downloads.desc';
-  path += `&order=${orderCol}&limit=${limit}`;
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const { data, error } = await supabase(c.env, path);
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json(data);
+  let orderClause = 'ORDER BY downloads DESC';
+  if (sort === 'name') orderClause = 'ORDER BY name ASC';
+  else if (sort === 'updated') orderClause = 'ORDER BY updated_at DESC';
+
+  params.push(limit);
+  const limitIdx = params.length;
+
+  const sql = `SELECT id, slug, name, tagline, category, version, downloads, image_url, is_featured, created_at, updated_at
+               FROM projects ${whereClause} ${orderClause} LIMIT $${limitIdx}`;
+
+  try {
+    const projects = await query(c.env, sql, params);
+    return c.json(projects);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
+// Single project by slug
 publicRoutes.get('/projects/:slug', cache60s, async (c) => {
   const slug = c.req.param('slug');
-  const { data, error } = await supabase(
-    c.env,
-    `projects?slug=eq.${encodeURIComponent(slug)}&limit=1`,
-    { headers: { Accept: 'application/vnd.pgrst.object+json' } },
-  );
-  if (error) return c.json({ error: error.message }, 500);
-  if (!data) return c.json({ error: 'Project not found' }, 404);
-  return c.json(data);
+  try {
+    const project = await queryOne(c.env, 'SELECT * FROM projects WHERE slug = $1 LIMIT 1', [slug]);
+    if (!project) return c.json({ error: 'Project not found' }, 404);
+    return c.json(project);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
+// Per-project update check for client apps/launchers
+publicRoutes.get('/projects/:slug/updates', async (c) => {
+  const slug = c.req.param('slug');
+  const currentVersion = c.req.query('current_version') || c.req.query('version');
 
+  try {
+    const project = await queryOne<{
+      id: string;
+      slug: string;
+      name: string;
+      version: string | null;
+      redirect_url: string | null;
+      file_path: string | null;
+      updated_at: string;
+    }>(
+      c.env,
+      'SELECT id, slug, name, version, redirect_url, file_path, updated_at FROM projects WHERE slug = $1 LIMIT 1',
+      [slug],
+    );
+    if (!project) return c.json({ error: 'Project not found' }, 404);
+
+    const latestVersion = project.version || '1.0.0';
+    const hasUpdate = currentVersion ? currentVersion !== latestVersion : true;
+
+    const changelogs = await query<{
+      version: string;
+      title: string;
+      changes: string;
+      release_date: string;
+    }>(
+      c.env,
+      'SELECT version, title, changes, created_at as release_date FROM changelogs WHERE project_id = $1 ORDER BY created_at DESC LIMIT 5',
+      [project.id],
+    );
+
+    return c.json({
+      project: project.name,
+      slug: project.slug,
+      current_version: currentVersion ?? null,
+      latest_version: latestVersion,
+      has_update: hasUpdate,
+      release_date: project.updated_at,
+      download_url: `https://demonz.org/api/projects/download/${project.slug}`,
+      changelog: changelogs,
+    });
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
+});
+
+// Project download and atomic counter increment
 publicRoutes.get('/projects/download/:slug', async (c) => {
   const slug = c.req.param('slug');
-
-  const { data: project } = await supabase<{
-    id: string;
-    redirect_url: string | null;
-    file_path: string | null;
-  }>(
-    c.env,
-    `projects?slug=eq.${encodeURIComponent(slug)}&select=id,redirect_url,file_path&limit=1`,
-    { headers: { Accept: 'application/vnd.pgrst.object+json' } },
-  );
-
-  if (!project) return c.json({ error: 'Project not found' }, 404);
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  const rpcRes = await supabase(c.env, 'rpc/increment_downloads', {
-    method: 'POST',
-    body: { project_slug: slug },
-  });
-  if (rpcRes.error) {
-    const { data: current } = await supabase<{ downloads: number }>(
+  try {
+    const project = await queryOne<{
+      id: string;
+      redirect_url: string | null;
+      file_path: string | null;
+    }>(
       c.env,
-      `projects?id=eq.${project.id}&select=downloads&limit=1`,
-      { headers: { Accept: 'application/vnd.pgrst.object+json' } },
+      'UPDATE projects SET downloads = downloads + 1 WHERE slug = $1 RETURNING id, redirect_url, file_path',
+      [slug],
     );
-    await supabase(c.env, `projects?id=eq.${project.id}`, {
-      method: 'PATCH',
-      body: { downloads: (current?.downloads ?? 0) + 1 },
-    });
-  }
 
-  if (project.redirect_url) {
-    return c.redirect(project.redirect_url, 302);
-  }
+    if (!project) return c.json({ error: 'Project not found' }, 404);
 
-  if (project.file_path) {
-    const storageUrl = `${c.env.SUPABASE_URL}/storage/v1/object/sign/${project.file_path}`;
-    const signRes = await fetch(storageUrl, {
-      method: 'POST',
-      headers: {
-        apikey: c.env.SUPABASE_SERVICE_KEY,
-        Authorization: `Bearer ${c.env.SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ expiresIn: 300 }),
-    });
-    if (signRes.ok) {
-      const signData = (await signRes.json()) as { signedURL: string };
-      return c.redirect(`${c.env.SUPABASE_URL}/storage/v1${signData.signedURL}`, 302);
+    if (project.redirect_url) {
+      return c.redirect(project.redirect_url, 302);
     }
-  }
 
-  return c.json({ error: 'No download available' }, 404);
+    if (project.file_path) {
+      return c.redirect(`/api/images/${project.file_path}`, 302);
+    }
+
+    return c.json({ error: 'No download available' }, 404);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// Project changelogs
 publicRoutes.get('/projects/:slug/changelogs', cache60s, async (c) => {
   const slug = c.req.param('slug');
-  const { data: project } = await supabase<{ id: string }>(
-    c.env,
-    `projects?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`,
-    { headers: { Accept: 'application/vnd.pgrst.object+json' } },
-  );
-  if (!project) return c.json({ error: 'Project not found' }, 404);
-
-  const { data, error } = await supabase(
-    c.env,
-    `changelogs?project_id=eq.${project.id}&order=created_at.desc`,
-  );
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json(data);
+  try {
+    const changelogs = await query(
+      c.env,
+      `SELECT c.id, c.version, c.title, c.changes, c.created_at as release_date, c.created_at
+       FROM changelogs c
+       JOIN projects p ON c.project_id = p.id
+       WHERE p.slug = $1
+       ORDER BY c.created_at DESC`,
+      [slug],
+    );
+    return c.json(changelogs);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// Project comments
 publicRoutes.get('/projects/:slug/comments', cache30s, async (c) => {
   const slug = c.req.param('slug');
-  const { data: project } = await supabase<{ id: string }>(
-    c.env,
-    `projects?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`,
-    { headers: { Accept: 'application/vnd.pgrst.object+json' } },
-  );
-  if (!project) return c.json({ error: 'Project not found' }, 404);
-
-  const { data, error } = await supabase(
-    c.env,
-    `comments?project_id=eq.${project.id}&approved=eq.true&order=created_at.desc&select=id,user_name,comment_text,created_at`,
-  );
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json(data);
+  try {
+    const comments = await query(
+      c.env,
+      `SELECT c.id, c.user_name, c.comment_text, c.created_at
+       FROM comments c
+       JOIN projects p ON c.project_id = p.id
+       WHERE p.slug = $1 AND c.approved = true
+       ORDER BY c.created_at DESC`,
+      [slug],
+    );
+    return c.json(comments);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
+// Submit project comment
 publicRoutes.post('/projects/:slug/comments', async (c) => {
   const slug = c.req.param('slug');
   const body = await c.req.json<{
@@ -239,62 +259,82 @@ publicRoutes.post('/projects/:slug/comments', async (c) => {
     );
   }
 
-  const { data: project } = await supabase<{ id: string }>(
-    c.env,
-    `projects?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`,
-    { headers: { Accept: 'application/vnd.pgrst.object+json' } },
-  );
-  if (!project) return c.json({ error: 'Project not found' }, 404);
+  try {
+    const project = await queryOne<{ id: string }>(
+      c.env,
+      'SELECT id FROM projects WHERE slug = $1 LIMIT 1',
+      [slug],
+    );
+    if (!project) return c.json({ error: 'Project not found' }, 404);
 
-  const { error } = await supabase(c.env, 'comments', {
-    method: 'POST',
-    body: {
-      project_id: project.id,
-      user_name: sanitize(body.user_name, 100),
-      user_email: sanitize(body.user_email, 254),
-      comment_text: sanitize(body.comment_text, 2000),
-      approved: false,
-    },
-  });
+    await execute(
+      c.env,
+      `INSERT INTO comments (project_id, user_name, user_email, comment_text, approved)
+       VALUES ($1, $2, $3, $4, false)`,
+      [
+        project.id,
+        sanitize(body.user_name, 100),
+        sanitize(body.user_email, 254),
+        sanitize(body.comment_text, 2000),
+      ],
+    );
 
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json({ message: 'Comment submitted for moderation' }, 201);
+    return c.json({ message: 'Comment submitted for moderation' }, 201);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// List articles
 publicRoutes.get('/articles', async (c) => {
   const category = c.req.query('category');
   const limit = parseInt(c.req.query('limit') || '50', 10);
-  let path = `articles?published=eq.true&order=published_at.desc&limit=${limit}`;
+  const params: unknown[] = [];
+  const conditions = ['published = true'];
+
   if (category && category !== 'all') {
-    path += `&category=eq.${encodeURIComponent(category)}`;
+    params.push(category);
+    conditions.push(`category = $${params.length}`);
   }
-  const { data, error } = await supabase(c.env, path);
-  if (error) return c.json({ error: error.message }, 500);
-  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  return c.json(data);
+
+  params.push(limit);
+  const limitIdx = params.length;
+
+  try {
+    const articles = await query(
+      c.env,
+      `SELECT id, slug, title, summary, category, published_at, created_at
+       FROM articles
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY published_at DESC
+       LIMIT $${limitIdx}`,
+      params,
+    );
+    c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    return c.json(articles);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
+// Single article by slug
 publicRoutes.get('/articles/:slug', async (c) => {
   const slug = c.req.param('slug');
-  const { data, error } = await supabase(
-    c.env,
-    `articles?slug=eq.${encodeURIComponent(slug)}&published=eq.true&limit=1`,
-    { headers: { Accept: 'application/vnd.pgrst.object+json' } },
-  );
-  if (error) return c.json({ error: error.message }, 500);
-  if (!data) return c.json({ error: 'Article not found' }, 404);
-  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  return c.json(data);
+  try {
+    const article = await queryOne(
+      c.env,
+      'SELECT * FROM articles WHERE slug = $1 AND published = true LIMIT 1',
+      [slug],
+    );
+    if (!article) return c.json({ error: 'Article not found' }, 404);
+    c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    return c.json(article);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// Submit contact message
 publicRoutes.post('/contact', async (c) => {
   const body = await c.req.json<{ name: string; email: string; message: string }>();
 
@@ -314,92 +354,108 @@ publicRoutes.post('/contact', async (c) => {
     );
   }
 
-  const { error } = await supabase(c.env, 'contact_messages', {
-    method: 'POST',
-    body: {
-      name: sanitize(body.name, 100),
-      email: sanitize(body.email, 254),
-      message: sanitize(body.message, 5000),
-    },
-  });
-
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json({ message: 'Message sent successfully' }, 201);
+  try {
+    await execute(
+      c.env,
+      'INSERT INTO contact_messages (name, email, message) VALUES ($1, $2, $3)',
+      [
+        sanitize(body.name, 100),
+        sanitize(body.email, 254),
+        sanitize(body.message, 5000),
+      ],
+    );
+    return c.json({ message: 'Message sent successfully' }, 201);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// Studio development log entries
 publicRoutes.get('/studio-log', cache60s, async (c) => {
-  const { data, error } = await supabase(
-    c.env,
-    'studio_log?select=id,entry_date,tag,title,body,display_order,created_at&published=eq.true&order=display_order.asc,created_at.desc&limit=20',
-  );
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json(data);
+  try {
+    const logs = await query(
+      c.env,
+      `SELECT id, entry_date, tag, title, body, display_order, created_at
+       FROM studio_log
+       WHERE published = true
+       ORDER BY display_order ASC, created_at DESC
+       LIMIT 20`,
+    );
+    return c.json(logs);
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// Global search
 publicRoutes.get('/search', cache60s, async (c) => {
   const q = c.req.query('q');
   if (!q || q.length < 2) return c.json({ projects: [], articles: [] });
 
-  const [projectsRes, articlesRes] = await Promise.all([
-    supabase(
-      c.env,
-      `projects?or=(name.ilike.*${encodeURIComponent(q)}*,tagline.ilike.*${encodeURIComponent(q)}*)&select=slug,name,tagline,category&limit=5`,
-    ),
-    supabase(
-      c.env,
-      `articles?published=eq.true&or=(title.ilike.*${encodeURIComponent(q)}*,summary.ilike.*${encodeURIComponent(q)}*)&select=slug,title,category&limit=5`,
-    ),
-  ]);
+  const pattern = `%${q}%`;
+  try {
+    const [projects, articles] = await Promise.all([
+      query(
+        c.env,
+        `SELECT slug, name, tagline, category
+         FROM projects
+         WHERE name ILIKE $1 OR tagline ILIKE $1
+         LIMIT 5`,
+        [pattern],
+      ),
+      query(
+        c.env,
+        `SELECT slug, title, category
+         FROM articles
+         WHERE published = true AND (title ILIKE $1 OR summary ILIKE $1)
+         LIMIT 5`,
+        [pattern],
+      ),
+    ]);
 
-  return c.json({
-    projects: projectsRes.data || [],
-    articles: articlesRes.data || [],
-  });
+    return c.json({
+      projects: projects || [],
+      articles: articles || [],
+    });
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 500);
+  }
 });
 
-
-
-
-
+// RSS Feed
 publicRoutes.get('/feed.xml', async (c) => {
-  const { data, error } = await supabase<{
-    slug: string;
-    title: string;
-    summary: string;
-    content: string;
-    category: string | null;
-    published_at: string | null;
-    created_at: string;
-  }>(
-    c.env,
-    'articles?published=eq.true&select=slug,title,summary,content,category,published_at,created_at&order=published_at.desc&limit=30',
-  );
-  if (error) return c.json({ error: error.message }, 500);
+  try {
+    const articles = await query<{
+      slug: string;
+      title: string;
+      summary: string;
+      content: string;
+      category: string | null;
+      published_at: string | null;
+      created_at: string;
+    }>(
+      c.env,
+      `SELECT slug, title, summary, content, category, published_at, created_at
+       FROM articles
+       WHERE published = true
+       ORDER BY published_at DESC
+       LIMIT 30`,
+    );
 
-  const articles = Array.isArray(data) ? data : [];
-  const host = 'https://demonz.org';
+    const host = 'https://demonz.org';
+    const escapeXml = (s: string) =>
+      (s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
 
-  const escapeXml = (s: string) =>
-    s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
-
-  const entries = articles
-    .map((a) => {
-      const date = a.published_at || a.created_at;
-      const link = `${host}/articles/${a.slug}`;
-      return `    <item>
+    const entries = articles
+      .map((a) => {
+        const date = a.published_at || a.created_at;
+        const link = `${host}/articles/${a.slug}`;
+        return `    <item>
       <title>${escapeXml(a.title)}</title>
       <link>${link}</link>
       <guid isPermaLink="true">${link}</guid>
@@ -407,10 +463,10 @@ publicRoutes.get('/feed.xml', async (c) => {
       ${a.category ? `<category>${escapeXml(a.category)}</category>` : ''}
       <description>${escapeXml(a.summary || a.content.slice(0, 300))}</description>
     </item>`;
-    })
-    .join('\n');
+      })
+      .join('\n');
 
-  const feed = `<?xml version="1.0" encoding="UTF-8"?>
+    const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>DemonZ Development — Articles</title>
@@ -422,52 +478,50 @@ ${entries}
   </channel>
 </rss>`;
 
-  return c.text(feed, 200, {
-    'Content-Type': 'application/rss+xml; charset=utf-8',
-    'Cache-Control': 'public, max-age=1800',
-  });
+    return c.text(feed, 200, {
+      'Content-Type': 'application/rss+xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=1800',
+    });
+  } catch (err) {
+    return c.text('Error generating feed', 500);
+  }
 });
 
-// Dynamic XML Sitemap for SEO & Search Engine / AI Crawlers
+// Dynamic XML Sitemap for SEO & Search Engine Crawlers
 publicRoutes.get('/sitemap.xml', async (c) => {
-  const [projectsRes, articlesRes] = await Promise.all([
-    supabase<{ slug: string }>(c.env, 'projects?select=slug&limit=1000'),
-    supabase<{ slug: string }>(c.env, 'articles?published=eq.true&select=slug&limit=1000'),
-  ]);
+  try {
+    const [projects, articles] = await Promise.all([
+      query<{ slug: string }>(c.env, 'SELECT slug FROM projects LIMIT 1000'),
+      query<{ slug: string }>(c.env, 'SELECT slug FROM articles WHERE published = true LIMIT 1000'),
+    ]);
 
-  const projects = Array.isArray(projectsRes.data) ? projectsRes.data : [];
-  const articles = Array.isArray(articlesRes.data) ? articlesRes.data : [];
+    const host = 'https://demonz.org';
 
-  const host = 'https://demonz.org';
-  
-  // Base URLs
-  const urls = [
-    { loc: `${host}/`, priority: '1.0', changefreq: 'weekly' },
-    { loc: `${host}/projects`, priority: '0.9', changefreq: 'daily' },
-    { loc: `${host}/articles`, priority: '0.8', changefreq: 'daily' },
-    { loc: `${host}/privacy`, priority: '0.3', changefreq: 'monthly' },
-    { loc: `${host}/terms`, priority: '0.3', changefreq: 'monthly' },
-  ];
+    const urls = [
+      { loc: `${host}/`, priority: '1.0', changefreq: 'weekly' },
+      { loc: `${host}/projects`, priority: '0.9', changefreq: 'daily' },
+      { loc: `${host}/articles`, priority: '0.8', changefreq: 'daily' },
+      { loc: `${host}/privacy`, priority: '0.3', changefreq: 'monthly' },
+      { loc: `${host}/terms`, priority: '0.3', changefreq: 'monthly' },
+    ];
 
-  // Dynamic projects
-  projects.forEach((p) => {
-    urls.push({
-      loc: `${host}/projects/${p.slug}`,
-      priority: '0.8',
-      changefreq: 'weekly',
+    projects.forEach((p) => {
+      urls.push({
+        loc: `${host}/projects/${p.slug}`,
+        priority: '0.8',
+        changefreq: 'weekly',
+      });
     });
-  });
 
-  // Dynamic articles
-  articles.forEach((a) => {
-    urls.push({
-      loc: `${host}/articles/${a.slug}`,
-      priority: '0.8',
-      changefreq: 'weekly',
+    articles.forEach((a) => {
+      urls.push({
+        loc: `${host}/articles/${a.slug}`,
+        priority: '0.8',
+        changefreq: 'weekly',
+      });
     });
-  });
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
   .map(
@@ -480,53 +534,52 @@ ${urls
   .join('\n')}
 </urlset>`;
 
-  return c.text(xml, 200, {
-    'Content-Type': 'application/xml',
-    'Cache-Control': 'public, max-age=3600',
-  });
+    return c.text(xml, 200, {
+      'Content-Type': 'application/xml',
+      'Cache-Control': 'public, max-age=3600',
+    });
+  } catch (err) {
+    return c.text('Error generating sitemap', 500);
+  }
 });
 
-// ---------------------------------------------------------------------------
 // Image Serving from Database
-// ---------------------------------------------------------------------------
-
 publicRoutes.get('/images/:name', cache7Days, async (c) => {
   const rawName = c.req.param('name');
-
-  // Sanitize the name param to prevent path traversal and injection.
   const name = sanitizeNameParam(rawName);
   if (!name) {
     return c.text('Image not found', 404);
   }
 
-  const res = await supabase<{ name: string; content_type: string; data: string }>(
-    c.env,
-    `images?select=name,content_type,data&name=eq.${encodeURIComponent(name)}`,
-  );
+  try {
+    const img = await queryOne<{ name: string; content_type: string; data: string }>(
+      c.env,
+      'SELECT name, content_type, data FROM images WHERE name = $1 LIMIT 1',
+      [name],
+    );
 
-  if (res.error || !Array.isArray(res.data) || res.data.length === 0) {
+    if (!img) {
+      return c.text('Image not found', 404);
+    }
+
+    if (!validateContentType(img.content_type)) {
+      return c.text('Unsupported content type', 415);
+    }
+
+    const binaryString = atob(img.data);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    return c.body(bytes, 200, {
+      'Content-Type': img.content_type,
+      'Cache-Control': 'public, max-age=604800, must-revalidate',
+    });
+  } catch (err) {
     return c.text('Image not found', 404);
   }
-
-  const img = res.data[0];
-
-  // Only serve whitelisted image content types — never arbitrary types.
-  if (!validateContentType(img.content_type)) {
-    return c.text('Unsupported content type', 415);
-  }
-
-  // Decode base64 to binary bytes
-  const binaryString = atob(img.data);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-
-  return c.body(bytes, 200, {
-    'Content-Type': img.content_type,
-    'Cache-Control': 'public, max-age=604800, must-revalidate',
-  });
 });
 
 export default publicRoutes;

@@ -52,8 +52,8 @@ afterAll(async () => {
  * connectivity failure should surface as a real failure rather than being
  * silently skipped — a green run that quietly tested nothing is worse.
  */
-const maybe = (name: string, fn: () => Promise<void> | void) =>
-  configured ? it(name, fn) : it.skip(name, fn);
+const maybe = (name: string, fn: () => Promise<void> | void, timeout = 15000) =>
+  configured ? it(name, fn, timeout) : it.skip(name, fn);
 
 describe('pg layer against the live database', () => {
   maybe('runs a parameterised read', async () => {

@@ -1,12 +1,15 @@
 name = "dzd-api"
 main = "src/index.ts"
-compatibility_date = "2024-06-20"
+compatibility_date = "2024-09-23"
+compatibility_flags = [ "nodejs_compat" ]
 
 [vars]
 CORS_ORIGIN = "https://demonz.org"
 
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "ca1e2d0c8527443f9d5267c34757ba91"
+
 # Secrets (set via `wrangler secret put`):
-# SUPABASE_URL - Your Supabase project URL
-# SUPABASE_SERVICE_KEY - Your Supabase service role key (NEVER expose this)
-# ADMIN_PASSWORD_HASH - Bcrypt hash of the admin password
+# ADMIN_PASSWORD_HASH - Bcrypt/SHA256 hash of the admin password
 # JWT_SECRET - Secret key for signing admin JWT tokens

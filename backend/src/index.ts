@@ -3,12 +3,12 @@ import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import publicRoutes from './routes/public';
 import adminRoutes from './routes/admin';
+import mcpRoutes from './routes/mcp';
 import type { Env } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Without this, any thrown error (a malformed JSON body, a PostgREST timeout)
-// escapes as a plaintext 500 and leaks the exception message.
+// Without this, any thrown error escapes as a plaintext 500
 app.onError((err, c) => {
   const isJsonSyntax = err instanceof SyntaxError;
   if (isJsonSyntax) {
@@ -20,26 +20,21 @@ app.onError((err, c) => {
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404));
 
-
-
-
-
 app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
   const origins = [
-    c.env.CORS_ORIGIN,
+    c.env?.CORS_ORIGIN,
     'https://demonz.org',
     'https://www.demonz.org',
     'https://demonz-public.pages.dev',
-    'https://demonz-admin.pages.dev'
+    'https://demonz-admin.pages.dev',
   ];
 
-  if (c.env.DEV === 'true' || c.env.DEV === '1') {
+  if (c.env?.DEV === 'true' || c.env?.DEV === '1') {
     origins.push('http://localhost:5173');
     origins.push('http://localhost:5174');
   }
 
-  
   const uniqueOrigins = Array.from(new Set(origins.filter((o): o is string => !!o)));
 
   const corsMiddleware = cors({
@@ -51,11 +46,8 @@ app.use('*', async (c, next) => {
   return corsMiddleware(c, next);
 });
 
-
-
-
-
 app.route('/api', publicRoutes);
 app.route('/api/admin', adminRoutes);
+app.route('/api/mcp', mcpRoutes);
 
 export default app;

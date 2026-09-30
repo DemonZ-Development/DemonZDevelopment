@@ -1,32 +1,32 @@
 /**
- * PostgreSQL access layer.
+ * PostgreSQL access layer for Cloudflare Workers & Hyperdrive.
  *
- * Replaces the 49-line PostgREST wrapper this used to have. Call sites now
- * write parameterised SQL rather than a URL query string, which is both faster
- * (no string interpolation) and impossible to get wrong in the way
- * `?slug=eq.${userInput}` was.
- *
- * Every value reaching the database goes through a bind parameter. There is no
- * `query()` escape hatch exported, so SQL injection is not reachable from
- * route code by accident.
+ * Hyperdrive maintains the persistent connection pool to the VPS PostgreSQL
+ * database at the Cloudflare edge. Worker requests use `new Client()`, connect
+ * instantly via Hyperdrive, execute parameterised SQL queries, and cleanly
+ * close (`client.end()`), avoiding isolate event-loop hanging.
  */
 
 import pg from 'pg';
 
-const { Pool, types } = pg;
+const { Client, Pool, types } = pg;
 
-// node-postgres returns bigint (OID 20) as a string to avoid precision loss.
-// Every bigint in this schema is a counter well inside Number.MAX_SAFE_INTEGER,
-// and returning a string would silently break JSON serialisation in arithmetic
-// on the client, so parse them.
+// Parse bigint as number
 types.setTypeParser(20, (value: string) => Number(value));
 
-// timestamptz (1184) and timestamp (1114) come back as local-timezone strings.
-// Keep them as-is; the schema is UTC and the API is consumed as ISO strings.
+// Keep UTC timestamptz/timestamp strings intact
 types.setTypeParser(1184, (value: string) => value);
 types.setTypeParser(1114, (value: string) => value);
 
 export interface DbEnv {
+  HYPERDRIVE?: {
+    connectionString: string;
+    host?: string;
+    port?: number;
+    user?: string;
+    password?: string;
+    database?: string;
+  };
   DATABASE_URL?: string;
   PGHOST?: string;
   PGPORT?: string;
@@ -46,7 +46,8 @@ export interface Queryable {
 let pool: pg.Pool | null = null;
 let poolKey = '';
 
-function connectionString(env: DbEnv): string {
+export function connectionString(env: DbEnv): string {
+  if (env.HYPERDRIVE?.connectionString) return env.HYPERDRIVE.connectionString;
   if (env.DATABASE_URL) return env.DATABASE_URL;
   const user = env.PGUSER ?? 'dzd';
   const pass = env.PGPASSWORD ?? '';
@@ -57,17 +58,13 @@ function connectionString(env: DbEnv): string {
 }
 
 /**
- * One pool per unique connection string, reused across requests.
- *
- * Keyed on the string so that if DATABASE_URL ever differs between a local
- * process and a deployed one, they do not silently share a pool pointing at
- * the wrong database.
+ * Pool instance for local testing environments where persistent connections
+ * are permitted and managed.
  */
 export function getPool(env: DbEnv): pg.Pool {
   const key = connectionString(env);
   if (!pool || poolKey !== key) {
     if (pool) {
-      // Do not leave the previous pool's sockets open.
       void pool.end().catch(() => {});
     }
     pool = new Pool({
@@ -75,16 +72,10 @@ export function getPool(env: DbEnv): pg.Pool {
       max: Number(env.PGPOOL_MAX ?? 10),
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
-      // Fail fast rather than queue forever if the database is unreachable.
       statement_timeout: 15_000,
       application_name: 'dzd-api',
-      // The VPS only accepts loopback and Cloudflare ranges, so TLS is not
-      // terminated in front of it. Set PGSSLMODE=require when the database
-      // sits behind a tunnel that does terminate it.
       ...(process.env.PGSSLMODE === 'require' ? { ssl: { rejectUnauthorized: false } } : {}),
     });
-    // An idle client erroring out (server restart, network blip) must not take
-    // the process down; the next query re-establishes.
     pool.on('error', (err) => {
       console.error('pg pool idle client error', err.message);
     });
@@ -99,8 +90,16 @@ export async function query<T extends Record<string, unknown> = Record<string, u
   text: string,
   params: unknown[] = [],
 ): Promise<T[]> {
-  const result = await getPool(env).query<T>(text, params);
-  return result.rows;
+  const client = new Client({
+    connectionString: connectionString(env),
+  });
+  await client.connect();
+  try {
+    const result = await client.query<T>(text, params);
+    return result.rows;
+  } finally {
+    await client.end().catch(() => {});
+  }
 }
 
 /** Run a query and return the first row, or null. */
@@ -113,22 +112,29 @@ export async function queryOne<
 
 /** Run a statement for its effect; returns the affected row count. */
 export async function execute(env: DbEnv, text: string, params: unknown[] = []): Promise<number> {
-  const result = await getPool(env).query(text, params);
-  return result.rowCount ?? 0;
+  const client = new Client({
+    connectionString: connectionString(env),
+  });
+  await client.connect();
+  try {
+    const result = await client.query(text, params);
+    return result.rowCount ?? 0;
+  } finally {
+    await client.end().catch(() => {});
+  }
 }
 
 /**
  * Run `fn` inside a transaction, rolling back on any throw.
- *
- * Used wherever a multi-statement write must be all-or-nothing — a restore, a
- * signup that touches both users and sessions, a comment plus its moderation
- * bookkeeping.
  */
 export async function transaction<T>(
   env: DbEnv,
   fn: (tx: Queryable) => Promise<T>,
 ): Promise<T> {
-  const client = await getPool(env).connect();
+  const client = new Client({
+    connectionString: connectionString(env),
+  });
+  await client.connect();
   try {
     await client.query('begin');
     const result = await fn(client);
@@ -142,7 +148,7 @@ export async function transaction<T>(
     }
     throw err;
   } finally {
-    client.release();
+    await client.end().catch(() => {});
   }
 }
 

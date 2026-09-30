@@ -4,15 +4,21 @@ export interface SupabaseOptions {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
-
   countOnly?: boolean;
 }
 
+/**
+ * @deprecated All routes have migrated to PostgreSQL Hyperdrive (db.ts).
+ */
 export async function supabase<T = unknown>(
   env: Env,
   path: string,
   options: SupabaseOptions = {},
 ): Promise<SupabaseResponse<T> & { count?: number }> {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+    return { data: null, error: { message: 'Supabase is deprecated; use db.ts instead' } };
+  }
+
   const url = `${env.SUPABASE_URL}/rest/v1/${path}`;
   const res = await fetch(url, {
     method: options.method || 'GET',
