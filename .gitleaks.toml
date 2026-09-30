@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore mock credentials and dummy tokens in test files"
+paths = [
+  '''backend/tests/''',
+  '''frontend/src/.*\.test\..*''',
+  '''admin-frontend/src/.*\.test\..*'''
+]

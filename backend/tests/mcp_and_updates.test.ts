@@ -4,11 +4,12 @@ import { signJWT } from '../src/lib/jwt';
 
 describe('Public & MCP endpoints', () => {
   const JWT_SECRET = 'test-secret-key-32-bytes-minimum-length-dzd';
+  const TEST_MOCK_KEY = 'mock_mcp_test_token';
   const mockEnv = {
     JWT_SECRET,
     ADMIN_PASSWORD_HASH: 'hash',
     CORS_ORIGIN: 'https://demonz.org',
-    MCP_SECRET: 'test-mcp-key-12345',
+    MCP_SECRET: TEST_MOCK_KEY,
   };
 
   it('responds with health check status', async () => {
@@ -93,7 +94,7 @@ describe('Public & MCP endpoints', () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-MCP-Key': 'test-mcp-key-12345',
+            'X-MCP-Key': TEST_MOCK_KEY,
           },
           body: JSON.stringify({
             jsonrpc: '2.0',

@@ -1,0 +1,3 @@
+# Gitleaks ignore file
+df0f59c3b9aa8e338eb2a1c2101f160e55f9a20a:backend/tests/mcp_and_updates.test.ts:generic-api-key:11
+df0f59c3b9aa8e338eb2a1c2101f160e55f9a20a:backend/tests/mcp_and_updates.test.ts:generic-api-key:96
