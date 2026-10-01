@@ -72,6 +72,8 @@ adminRoutes.use('/media/*', adminAuth);
 adminRoutes.use('/studio-log', adminAuth);
 adminRoutes.use('/studio-log/*', adminAuth);
 adminRoutes.use('/backup/*', adminAuth);
+adminRoutes.use('/mcp', adminAuth);
+adminRoutes.use('/mcp/*', adminAuth);
 
 // ---------------------------------------------------------------------------
 // Projects
@@ -445,6 +447,23 @@ adminRoutes.post('/backup/restore', async (c) => {
   } catch (err) {
     return c.json({ error: err instanceof Error ? err.message : 'Restore error' }, 500);
   }
+});
+
+// ---------------------------------------------------------------------------
+// MCP Server Access Token (12-Hour Expiration)
+// ---------------------------------------------------------------------------
+
+adminRoutes.post('/mcp/token', async (c) => {
+  const EXPIRES_IN_SECONDS = 12 * 60 * 60; // 12 hours
+  const token = await signJWT({ role: 'admin', scope: 'mcp' }, c.env.JWT_SECRET, EXPIRES_IN_SECONDS);
+  const expiresAt = new Date(Date.now() + EXPIRES_IN_SECONDS * 1000).toISOString();
+
+  return c.json({
+    token,
+    expires_at: expiresAt,
+    expires_in_hours: 12,
+    server_url: 'https://dzd-api.demonzdevelopment.workers.dev/api/mcp',
+  });
 });
 
 export default adminRoutes;

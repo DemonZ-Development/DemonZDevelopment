@@ -40,6 +40,12 @@ vi.mock('../src/lib/api', async () => {
     fetchAdminComments: vi.fn().mockResolvedValue([]),
     fetchAdminMessages: vi.fn().mockResolvedValue([]),
     fetchAdminStudioLog: vi.fn().mockResolvedValue([]),
+    generateMcpToken: vi.fn().mockResolvedValue({
+      token: 'mock-12h-mcp-token',
+      expires_at: new Date(Date.now() + 43200000).toISOString(),
+      expires_in_hours: 12,
+      server_url: 'https://dzd-api.demonzdevelopment.workers.dev/api/mcp',
+    }),
   };
 });
 
@@ -108,5 +114,18 @@ describe('Admin Page', () => {
 
     expect(screen.getByText('Export Database Backup')).toBeInTheDocument();
     expect(screen.getByText('Restore Database Backup')).toBeInTheDocument();
+
+    const mcpTab = screen.getByRole('tab', { name: /mcp/i });
+    fireEvent.click(mcpTab);
+
+    expect(screen.getByText('12-Hour Secret Access Key')).toBeInTheDocument();
+    expect(screen.getByText('Generate 12-Hour Key')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Generate 12-Hour Key'));
+    await waitFor(() => {
+      expect(api.generateMcpToken).toHaveBeenCalledWith('mock-token');
+      expect(screen.getByText('mock-12h-mcp-token')).toBeInTheDocument();
+      expect(screen.getByText('Expires in 12 hours')).toBeInTheDocument();
+    });
   });
 });

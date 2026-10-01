@@ -42,18 +42,20 @@ import {
   markMessageRead,
   exportBackup,
   restoreBackup,
+  generateMcpToken,
   type AdminArticle,
   type AdminComment,
   type AdminMessage,
   type AdminProject,
   type AdminStudioLogEntry,
+  type McpTokenResponse,
   type Stats,
 } from '../lib/api';
 import styles from './Admin.module.css';
 
 const TOKEN_KEY = 'dzd_admin_token';
 
-type Tab = 'projects' | 'articles' | 'studio-log' | 'comments' | 'messages' | 'backup';
+type Tab = 'projects' | 'articles' | 'studio-log' | 'comments' | 'messages' | 'backup' | 'mcp';
 
 type DeleteTarget =
   | { kind: 'project'; id: string; name: string }
@@ -410,6 +412,7 @@ function AdminDashboard({
     comments: comments.length,
     messages: messages.length,
     backup: 0,
+    mcp: 0,
   };
 
   const currentFilteredCount =
@@ -471,7 +474,7 @@ function AdminDashboard({
           <div className={styles.headerLeft}>
             <h1 className={styles.title}>Admin Dashboard</h1>
             <p className={styles.subtitle}>
-              Manage projects, articles, comments, and messages.
+              Manage projects, articles, comments, messages, and MCP access.
             </p>
           </div>
         </div>
@@ -501,6 +504,7 @@ function AdminDashboard({
               'comments',
               'messages',
               'backup',
+              'mcp',
             ] as Tab[]
           ).map((t) => {
             const isAlert =
@@ -518,7 +522,9 @@ function AdminDashboard({
                 ? 'Studio Log'
                 : t === 'backup'
                   ? 'Backup & Data'
-                  : t.charAt(0).toUpperCase() + t.slice(1);
+                  : t === 'mcp'
+                    ? 'MCP Server'
+                    : t.charAt(0).toUpperCase() + t.slice(1);
 
             return (
               <button
@@ -532,7 +538,7 @@ function AdminDashboard({
                 }}
               >
                 {label}
-                {t !== 'backup' && (
+                {t !== 'backup' && t !== 'mcp' && (
                   <span
                     className={`${styles.tabBadge} ${
                       isAlert ? styles.tabBadgeAlert : ''
@@ -546,7 +552,7 @@ function AdminDashboard({
           })}
         </div>
 
-        {tab !== 'backup' && (
+        {tab !== 'backup' && tab !== 'mcp' && (
           <div className={styles.toolbar}>
             <div className={styles.toolbarLeft}>
               <div className={styles.searchWrap}>
@@ -659,6 +665,8 @@ function AdminDashboard({
           />
         ) : tab === 'backup' ? (
           <BackupSection token={token} />
+        ) : tab === 'mcp' ? (
+          <McpSection token={token} />
         ) : (
           <MessagesTable
             messages={filteredMessages}
@@ -1287,6 +1295,151 @@ function BackupSection({ token }: { token: string }) {
             />
             {restoring ? 'Restoring Snapshot…' : 'Select Backup File & Restore'}
           </label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function McpSection({ token }: { token: string }) {
+  const toast = useToast();
+  const [loading, setLoading] = useState(false);
+  const [mcpData, setMcpData] = useState<McpTokenResponse | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedConfig, setCopiedConfig] = useState(false);
+
+  async function handleGenerateKey() {
+    setLoading(true);
+    try {
+      const data = await generateMcpToken(token);
+      setMcpData(data);
+      toast.success('Generated 12-hour MCP secret key');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate key');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleCopyKey() {
+    if (!mcpData?.token) return;
+    navigator.clipboard.writeText(mcpData.token);
+    setCopiedKey(true);
+    toast.success('MCP key copied to clipboard');
+    setTimeout(() => setCopiedKey(false), 2000);
+  }
+
+  const sampleConfig = useMemo(() => {
+    const key = mcpData?.token || '<GENERATE_12H_KEY_ABOVE>';
+    return JSON.stringify(
+      {
+        mcpServers: {
+          demonz: {
+            command: 'npx',
+            args: [
+              '-y',
+              'mcp-remote',
+              mcpData?.server_url || 'https://dzd-api.demonzdevelopment.workers.dev/api/mcp',
+              '--header',
+              `Authorization: Bearer ${key}`,
+            ],
+          },
+        },
+      },
+      null,
+      2,
+    );
+  }, [mcpData]);
+
+  function handleCopyConfig() {
+    navigator.clipboard.writeText(sampleConfig);
+    setCopiedConfig(true);
+    toast.success('MCP config copied to clipboard');
+    setTimeout(() => setCopiedConfig(false), 2000);
+  }
+
+  const tools = [
+    { name: 'dzd_list_projects', desc: 'List software projects, games, and tools with download counts' },
+    { name: 'dzd_get_project', desc: 'Get detailed project information, download URLs, and changelogs' },
+    { name: 'dzd_check_update', desc: 'Check for software updates against an installed client version' },
+    { name: 'dzd_list_articles', desc: 'Browse published technical articles, tutorials, and posts' },
+    { name: 'dzd_get_article', desc: 'Read full markdown content of any published article' },
+    { name: 'dzd_search', desc: 'Search projects and articles across the entire knowledge base' },
+    { name: 'dzd_get_stats', desc: 'Get live project counts, article counts, and download metrics' },
+    { name: 'dzd_list_unread_messages', desc: 'List unread user contact and inquiry messages' },
+    { name: 'dzd_list_pending_comments', desc: 'List user comments awaiting admin moderation' },
+    { name: 'dzd_approve_comment', desc: 'Approve pending comments for public display' },
+    { name: 'dzd_update_project_version', desc: 'Update a project release version string' },
+    { name: 'dzd_create_changelog', desc: 'Publish release notes and version changelogs' },
+  ];
+
+  return (
+    <div className={styles.mcpContainer}>
+      <div className={styles.mcpCard}>
+        <div className={styles.mcpHeader}>
+          <div>
+            <h3 className={styles.mcpCardTitle}>12-Hour Secret Access Key</h3>
+            <p className={styles.mcpCardText}>
+              Generate a temporary secret key for team members to authenticate their local MCP clients.
+              For security, each key automatically expires after 12 hours.
+            </p>
+          </div>
+          <Button onClick={handleGenerateKey} disabled={loading}>
+            {loading ? <SpinnerIcon size={14} /> : null}
+            {mcpData ? 'Regenerate 12h Key' : 'Generate 12-Hour Key'}
+          </Button>
+        </div>
+
+        {mcpData && (
+          <div className={styles.tokenSection}>
+            <div className={styles.tokenBox}>
+              <span className={styles.tokenValue}>{mcpData.token}</span>
+              <Button size="small" variant="ghost" onClick={handleCopyKey}>
+                {copiedKey ? 'Copied ✓' : 'Copy Key'}
+              </Button>
+            </div>
+            <div className={styles.tokenMeta}>
+              <span className={styles.tokenBadge}>Expires in 12 hours</span>
+              <span>
+                Valid until {new Date(mcpData.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({new Date(mcpData.expires_at).toLocaleDateString()})
+              </span>
+              <span>Endpoint: {mcpData.server_url}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.mcpCard}>
+        <div className={styles.mcpHeader}>
+          <div>
+            <h3 className={styles.mcpCardTitle}>Client Configuration (Claude Desktop / Cursor)</h3>
+            <p className={styles.mcpCardText}>
+              Add this block to your <code>claude_desktop_config.json</code> or your agent's MCP settings to connect.
+            </p>
+          </div>
+          <Button size="small" variant="ghost" onClick={handleCopyConfig}>
+            {copiedConfig ? 'Copied ✓' : 'Copy Config'}
+          </Button>
+        </div>
+        <pre className={styles.configBlock}>{sampleConfig}</pre>
+      </div>
+
+      <div className={styles.mcpCard}>
+        <div className={styles.mcpHeader}>
+          <div>
+            <h3 className={styles.mcpCardTitle}>Available MCP Tools ({tools.length})</h3>
+            <p className={styles.mcpCardText}>
+              Connected agents and team members can invoke these tools to inspect and manage DemonZ Development content:
+            </p>
+          </div>
+        </div>
+        <div className={styles.toolsGrid}>
+          {tools.map((tool) => (
+            <div key={tool.name} className={styles.toolCard}>
+              <div className={styles.toolName}>{tool.name}</div>
+              <p className={styles.toolDesc}>{tool.desc}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

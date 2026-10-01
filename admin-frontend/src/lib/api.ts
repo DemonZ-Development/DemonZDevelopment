@@ -460,3 +460,16 @@ export const restoreBackup = (token: string, data: unknown) =>
     method: 'POST',
     body: JSON.stringify(data),
   });
+
+// MCP Server Key
+export interface McpTokenResponse {
+  token: string;
+  expires_at: string;
+  expires_in_hours: number;
+  server_url: string;
+}
+
+export const generateMcpToken = (token: string) =>
+  adminRequest<McpTokenResponse>('/admin/mcp/token', token, {
+    method: 'POST',
+  });

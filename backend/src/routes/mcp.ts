@@ -204,7 +204,7 @@ async function isAuthorizedAdmin(c: any): Promise<boolean> {
     return true;
   }
 
-  // Check signed admin JWT token
+  // Check signed admin JWT token in Authorization: Bearer <token>
   if (auth && auth.toLowerCase().startsWith('bearer ')) {
     const token = auth.slice(7).trim();
     if (token) {
@@ -215,8 +215,33 @@ async function isAuthorizedAdmin(c: any): Promise<boolean> {
     }
   }
 
+  // Check signed admin/MCP JWT token passed via X-MCP-Key or X-API-Key
+  if (mcpKey) {
+    const valid = await verifyJWT(mcpKey, c.env?.JWT_SECRET || '');
+    if (valid) {
+      return true;
+    }
+  }
+
   return false;
 }
+
+// Information & health endpoint for MCP client discovery
+mcpRoutes.get('/', async (c) => {
+  const authorized = await isAuthorizedAdmin(c);
+  return c.json({
+    status: 'ok',
+    server: 'demonz-development-admin-mcp',
+    version: '1.0.0',
+    protocol: 'jsonrpc-2.0',
+    authenticated: authorized,
+    message: authorized
+      ? 'Authenticated: MCP server is active and ready for tool execution.'
+      : 'Authentication required: provide a valid 12-hour secret key via Authorization: Bearer <token> or X-MCP-Key header.',
+    tools_count: MCP_TOOLS.length,
+    tools: MCP_TOOLS.map((t) => ({ name: t.name, description: t.description })),
+  });
+});
 
 // Handles JSON-RPC 2.0 MCP protocol with admin authentication
 mcpRoutes.post('/', async (c) => {

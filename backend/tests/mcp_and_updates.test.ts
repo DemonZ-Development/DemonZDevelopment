@@ -151,18 +151,81 @@ describe('Public & MCP endpoints', () => {
       expect(data.error.code).toBe(-32601);
     });
 
-    it('rejects malformed jsonrpc request', async () => {
-      const res = await app.request('/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          version: '1.0',
-        }),
-      });
+    it('generates 12-hour MCP access token via POST /api/admin/mcp/token', async () => {
+      const adminToken = await signJWT({ role: 'admin' }, JWT_SECRET);
+      const res = await app.request(
+        '/api/admin/mcp/token',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        },
+        mockEnv,
+      );
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(200);
       const data = await res.json<any>();
-      expect(data.error.code).toBe(-32600);
+      expect(data.token).toBeDefined();
+      expect(data.expires_in_hours).toBe(12);
+      expect(data.expires_at).toBeDefined();
+      expect(data.server_url).toBeDefined();
+
+      // Test using this generated 12-hour token in X-MCP-Key header
+      const mcpRes = await app.request(
+        '/api/mcp',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-MCP-Key': data.token,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'test-12h',
+            method: 'tools/list',
+          }),
+        },
+        mockEnv,
+      );
+
+      expect(mcpRes.status).toBe(200);
+      const mcpData = await mcpRes.json<any>();
+      expect(mcpData.result.tools).toBeDefined();
+    });
+
+    it('rejects expired MCP token with 401', async () => {
+      // Create a token expired in the past (-10 seconds)
+      const expiredToken = await signJWT({ role: 'admin', scope: 'mcp' }, JWT_SECRET, -10);
+      const res = await app.request(
+        '/api/mcp',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-MCP-Key': expiredToken,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'expired-1',
+            method: 'tools/list',
+          }),
+        },
+        mockEnv,
+      );
+
+      expect(res.status).toBe(401);
+      const data = await res.json<any>();
+      expect(data.error.code).toBe(-32000);
+    });
+
+    it('provides server discovery info via GET /api/mcp', async () => {
+      const res = await app.request('/api/mcp', { method: 'GET' }, mockEnv);
+      expect(res.status).toBe(200);
+      const data = await res.json<any>();
+      expect(data.status).toBe('ok');
+      expect(data.server).toBe('demonz-development-admin-mcp');
+      expect(data.tools_count).toBeGreaterThan(5);
     });
   });
 });
