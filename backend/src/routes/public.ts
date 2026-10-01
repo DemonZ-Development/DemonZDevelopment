@@ -303,7 +303,7 @@ publicRoutes.get('/articles', async (c) => {
   try {
     const articles = await query(
       c.env,
-      `SELECT id, slug, title, summary, category, published_at, created_at
+      `SELECT id, slug, title, summary, content, image_url, category, published_at, created_at
        FROM articles
        WHERE ${conditions.join(' AND ')}
        ORDER BY published_at DESC

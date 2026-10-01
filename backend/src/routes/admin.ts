@@ -126,7 +126,7 @@ adminRoutes.get('/articles', async (c) => {
   try {
     const articles = await query(
       c.env,
-      'SELECT id, slug, title, category, published, published_at, created_at FROM articles ORDER BY created_at DESC',
+      'SELECT id, slug, title, summary, content, image_url, category, published, published_at, created_at FROM articles ORDER BY created_at DESC',
     );
     return c.json(articles);
   } catch (err) {

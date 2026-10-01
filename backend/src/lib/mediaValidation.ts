@@ -24,6 +24,7 @@ export const ALLOWED_IMAGE_CONTENT_TYPES = new Set([
   'image/jpeg',
   'image/gif',
   'image/webp',
+  'image/svg+xml',
 ]);
 
 export interface MediaValidationResult {

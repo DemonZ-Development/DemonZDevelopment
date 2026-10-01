@@ -27,7 +27,7 @@ app.use('*', async (c, next) => {
     'https://demonz.org',
     'https://www.demonz.org',
     'https://demonz-public.pages.dev',
-    'https://demonz-admin.pages.dev',
+    'https://dzd-hq-9x2m4k.pages.dev',
   ];
 
   if (c.env?.DEV === 'true' || c.env?.DEV === '1') {
