@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { Button } from '../components/ui/Button';
@@ -11,6 +11,7 @@ import {
   PlusIcon,
   SearchIcon,
   TrashIcon,
+  SpinnerIcon,
 } from '../components/ui/Icon';
 import { StatsOverview } from '../components/admin/StatsOverview';
 import { ProjectFormModal } from '../components/admin/ProjectFormModal';
@@ -52,7 +53,7 @@ import styles from './Admin.module.css';
 
 const TOKEN_KEY = 'dzd_admin_token';
 
-type Tab = 'projects' | 'articles' | 'comments' | 'messages' | 'studio-log' | 'backup';
+type Tab = 'projects' | 'articles' | 'studio-log' | 'comments' | 'messages' | 'backup';
 
 type DeleteTarget =
   | { kind: 'project'; id: string; name: string }
@@ -77,8 +78,6 @@ interface StudioLogFormTarget {
   entry: AdminStudioLogEntry | null;
 }
 
-
-
 function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
   const toast = useToast();
   const [password, setPassword] = useState('');
@@ -95,7 +94,7 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
     } catch (err) {
       const msg =
         err instanceof ApiError && err.status === 401
-          ? 'Invalid credentials'
+          ? 'Invalid administrative credentials'
           : err instanceof Error
             ? err.message
             : 'Connection error';
@@ -108,27 +107,43 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
 
   return (
     <div className={styles.loginWrap}>
-      <h2 className={styles.loginTitle}>Admin Login</h2>
-      {error && <p className={styles.loginError}>{error}</p>}
+      <div className={styles.loginHeader}>
+        <img
+          src="/dzd-logo.png"
+          alt="DemonZ Development Logo"
+          className={styles.loginBadge}
+        />
+        <span className={styles.loginMeta}>DZD-HQ // ACCESS CONTROL LEVEL 1</span>
+        <h2 className={styles.loginTitle}>Authorization Required</h2>
+        <p className={styles.loginSubtext}>
+          Enter administrator credentials to unlock the operations terminal.
+        </p>
+      </div>
+
+      {error && <div className={styles.loginError}>{error}</div>}
+
       <form onSubmit={handleSubmit}>
         <Input
           type="password"
-          label="Password"
+          label="Access Key / Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter admin password"
+          placeholder="••••••••••••••••"
           autoFocus
           required
         />
         <Button type="submit" disabled={submitting} className={styles.loginButton}>
-          {submitting ? 'Signing in…' : 'Sign In'}
+          {submitting ? 'Authenticating…' : 'Authenticate Session'}
         </Button>
       </form>
+
+      <div className={styles.loginFooter}>
+        <span>NODE: CLOUDFLARE WORKERS EDGE</span>
+        <span>STATUS: SECURE</span>
+      </div>
     </div>
   );
 }
-
-
 
 function AdminDashboard({
   token,
@@ -137,7 +152,7 @@ function AdminDashboard({
   token: string;
   onLogout: () => void;
 }) {
-  useDocumentTitle('Admin | DemonZ Development');
+  useDocumentTitle('Command Center // DZD Admin');
 
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('projects');
@@ -153,6 +168,7 @@ function AdminDashboard({
 
   const [tabLoading, setTabLoading] = useState(false);
   const [tabError, setTabError] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [projectForm, setProjectForm] = useState<ProjectFormTarget | null>(null);
@@ -162,71 +178,68 @@ function AdminDashboard({
   const [viewMessage, setViewMessage] = useState<AdminMessage | null>(null);
   const [changelogProject, setChangelogProject] = useState<AdminProject | null>(null);
 
-  
-  useEffect(() => {
-    let active = true;
+  const loadStats = useCallback(async () => {
     setStatsLoading(true);
-    fetchStats()
-      .then((s) => {
-        if (active) setStats(s);
-      })
-      .catch(() => {
-        if (active) toast.error('Failed to load stats');
-      })
-      .finally(() => {
-        if (active) setStatsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try {
+      const s = await fetchStats();
+      setStats(s);
+    } catch {
+      toast.error('Failed to load stats telemetry');
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [toast]);
 
-  
   useEffect(() => {
-    let active = true;
+    loadStats();
+  }, [loadStats]);
+
+  const loadTabData = useCallback(async () => {
     setTabLoading(true);
     setTabError(false);
-    const load = async () => {
-      try {
-        let data;
-        if (tab === 'projects') {
-          data = await fetchAdminProjects(token);
-          if (active) setProjects(data);
-        } else if (tab === 'articles') {
-          data = await fetchAdminArticles(token);
-          if (active) setArticles(data);
-        } else if (tab === 'comments') {
-          data = await fetchAdminComments(token);
-          if (active) setComments(data);
-        } else if (tab === 'messages') {
-          data = await fetchAdminMessages(token);
-          if (active) setMessages(data);
-        } else if (tab === 'studio-log') {
-          data = await fetchAdminStudioLog(token);
-          if (active) setStudioLog(data);
-        }
-      } catch (err) {
-        if (err instanceof ApiError && err.status === 401) {
-          onLogout();
-          return;
-        }
-        if (active) {
-          setTabError(true);
-          toast.error('Failed to load data');
-        }
-      } finally {
-        if (active) setTabLoading(false);
+    try {
+      if (tab === 'projects') {
+        const data = await fetchAdminProjects(token);
+        setProjects(data);
+      } else if (tab === 'articles') {
+        const data = await fetchAdminArticles(token);
+        setArticles(data);
+      } else if (tab === 'comments') {
+        const data = await fetchAdminComments(token);
+        setComments(data);
+      } else if (tab === 'messages') {
+        const data = await fetchAdminMessages(token);
+        setMessages(data);
+      } else if (tab === 'studio-log') {
+        const data = await fetchAdminStudioLog(token);
+        setStudioLog(data);
       }
-    };
-    load();
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, tab]);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        onLogout();
+        return;
+      }
+      setTabError(true);
+      toast.error('Failed to synchronize data');
+    } finally {
+      setTabLoading(false);
+    }
+  }, [token, tab, onLogout, toast]);
 
-  
+  useEffect(() => {
+    loadTabData();
+  }, [loadTabData]);
+
+  async function handleRefreshAll() {
+    setRefreshing(true);
+    try {
+      await Promise.all([loadStats(), loadTabData()]);
+      toast.success('Telemetry synchronized');
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   const filteredProjects = useMemo(() => {
     if (!search.trim()) return projects;
     const q = search.toLowerCase();
@@ -255,7 +268,7 @@ function AdminDashboard({
     return comments.filter(
       (c) =>
         c.user_name.toLowerCase().includes(q) ||
-        c.user_email.toLowerCase().includes(q) ||
+        (c.user_email ?? '').toLowerCase().includes(q) ||
         c.comment_text.toLowerCase().includes(q),
     );
   }, [comments, search]);
@@ -282,11 +295,9 @@ function AdminDashboard({
     );
   }, [studioLog, search]);
 
-  
   const pendingCommentCount = comments.filter((c) => !c.approved).length;
   const unreadMessageCount = messages.filter((m) => !m.read).length;
 
-  
   async function handleApproveComment(id: string) {
     try {
       await approveComment(token, id);
@@ -295,14 +306,13 @@ function AdminDashboard({
       );
       toast.success('Comment approved');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to approve');
+      toast.error(err instanceof Error ? err.message : 'Failed to approve comment');
     }
   }
 
   async function handleOpenMessage(m: AdminMessage) {
     setViewMessage(m);
     if (!m.read) {
-      
       setMessages((ms) => ms.map((x) => (x.id === m.id ? { ...x, read: true } : x)));
       try {
         await markMessageRead(token, m.id);
@@ -310,7 +320,7 @@ function AdminDashboard({
         setMessages((ms) =>
           ms.map((x) => (x.id === m.id ? { ...x, read: false } : x)),
         );
-        toast.error('Failed to mark as read');
+        toast.error('Failed to mark message read');
       }
     }
   }
@@ -360,23 +370,23 @@ function AdminDashboard({
       if (target.kind === 'project') {
         await deleteProject(token, target.id);
         setProjects((ps) => ps.filter((p) => p.id !== target.id));
-        toast.success('Project deleted');
+        toast.success('Project removed');
       } else if (target.kind === 'article') {
         await deleteArticle(token, target.id);
         setArticles((as) => as.filter((a) => a.id !== target.id));
-        toast.success('Article deleted');
+        toast.success('Article removed');
       } else if (target.kind === 'comment') {
         await deleteComment(token, target.id);
         setComments((cs) => cs.filter((c) => c.id !== target.id));
-        toast.success('Comment deleted');
+        toast.success('Comment removed');
       } else if (target.kind === 'message') {
         await deleteMessage(token, target.id);
         setMessages((ms) => ms.filter((m) => m.id !== target.id));
-        toast.success('Message deleted');
+        toast.success('Message removed');
       } else if (target.kind === 'studio-log') {
         await deleteStudioLogEntry(token, target.id);
         setStudioLog((es) => es.filter((e) => e.id !== target.id));
-        toast.success('Studio log entry deleted');
+        toast.success('Studio log entry removed');
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Delete failed');
@@ -387,30 +397,98 @@ function AdminDashboard({
     if (!deleteTarget) return '';
     switch (deleteTarget.kind) {
       case 'project':
-        return `Delete project "${deleteTarget.name}"? This cannot be undone.`;
+        return `Delete project "${deleteTarget.name}"? This action cannot be reverted.`;
       case 'article':
-        return `Delete article "${deleteTarget.title}"? This cannot be undone.`;
+        return `Delete article "${deleteTarget.title}"? This action cannot be reverted.`;
       case 'comment':
-        return 'Delete this comment? This cannot be undone.';
+        return 'Delete this comment record? This action cannot be reverted.';
       case 'message':
-        return `Delete message from ${deleteTarget.name}? This cannot be undone.`;
+        return `Delete message from "${deleteTarget.name}"? This action cannot be reverted.`;
       case 'studio-log':
-        return `Delete studio log entry "${deleteTarget.title}"? This cannot be undone.`;
+        return `Delete studio log entry "${deleteTarget.title}"? This action cannot be reverted.`;
     }
   }
 
+  const tabCount = {
+    projects: projects.length,
+    articles: articles.length,
+    'studio-log': studioLog.length,
+    comments: comments.length,
+    messages: messages.length,
+    backup: 0,
+  };
+
+  const currentFilteredCount =
+    tab === 'projects'
+      ? filteredProjects.length
+      : tab === 'articles'
+        ? filteredArticles.length
+        : tab === 'studio-log'
+          ? filteredStudioLog.length
+          : tab === 'comments'
+            ? filteredComments.length
+            : tab === 'messages'
+              ? filteredMessages.length
+              : 0;
+
   return (
     <div className={styles.page}>
+      <header className={styles.commandBar}>
+        <div className={styles.commandBarInner}>
+          <div className={styles.brandCluster}>
+            <img
+              src="/dzd-logo.png"
+              alt="DZD Logo"
+              className={styles.brandLogo}
+            />
+            <div className={styles.brandTitles}>
+              <span className={styles.brandName}>DEMONZ</span>
+              <span className={styles.brandHQ}>HQ</span>
+            </div>
+            <div className={styles.statusIndicator}>
+              <span className={styles.pulseDot} />
+              SYSTEM ONLINE
+            </div>
+          </div>
+
+          <div className={styles.topActionsCluster}>
+            <a
+              href="https://demonz.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.siteLink}
+              title="Open public portal in new tab"
+            >
+              Public Site ↗
+            </a>
+            <button
+              type="button"
+              className={styles.syncBtn}
+              onClick={handleRefreshAll}
+              disabled={refreshing || tabLoading}
+              title="Re-synchronize telemetry and records"
+            >
+              {refreshing ? <SpinnerIcon size={12} /> : '↻'} Sync
+            </button>
+            <Button variant="ghost" size="small" onClick={onLogout}>
+              <LogoutIcon size={14} /> Sign Out
+            </Button>
+          </div>
+        </div>
+      </header>
+
       <div className={styles.container}>
         <div className={styles.headerRow}>
-          <h1 className={styles.title}>Admin Dashboard</h1>
-          <Button variant="ghost" size="small" onClick={onLogout}>
-            <LogoutIcon size={14} /> Logout
-          </Button>
+          <div className={styles.headerLeft}>
+            <h1 className={styles.title}>Admin Command Center</h1>
+            <p className={styles.subtitle}>
+              Operational infrastructure, content deployment, and system telemetry.
+            </p>
+          </div>
         </div>
 
         {statsLoading && !stats ? (
-          <LoadingState label="Loading stats" />
+          <LoadingState label="Loading telemetry" />
         ) : stats ? (
           <StatsOverview
             projectCount={stats.projectCount}
@@ -418,23 +496,41 @@ function AdminDashboard({
             pendingComments={pendingCommentCount}
             unreadMessages={unreadMessageCount}
             totalDownloads={stats.totalDownloads}
+            onSelectTab={(selectedTab) => {
+              setTab(selectedTab);
+              setSearch('');
+            }}
           />
         ) : null}
 
-        <div className={styles.tabs} role="tablist">
-          {(['projects', 'articles', 'studio-log', 'comments', 'messages', 'backup'] as Tab[]).map((t) => {
-            const badge =
+        <div className={styles.tabsWrap} role="tablist">
+          {(
+            [
+              'projects',
+              'articles',
+              'studio-log',
+              'comments',
+              'messages',
+              'backup',
+            ] as Tab[]
+          ).map((t) => {
+            const isAlert =
+              (t === 'comments' && pendingCommentCount > 0) ||
+              (t === 'messages' && unreadMessageCount > 0);
+            const alertCount =
               t === 'comments'
                 ? pendingCommentCount
                 : t === 'messages'
                   ? unreadMessageCount
                   : 0;
+
             const label =
               t === 'studio-log'
                 ? 'Studio Log'
                 : t === 'backup'
-                  ? 'Backup & Restore'
+                  ? 'Backup & System'
                   : t.charAt(0).toUpperCase() + t.slice(1);
+
             return (
               <button
                 key={t}
@@ -447,7 +543,15 @@ function AdminDashboard({
                 }}
               >
                 {label}
-                {badge > 0 && <span className={styles.tabBadge}>{badge}</span>}
+                {t !== 'backup' && (
+                  <span
+                    className={`${styles.tabBadge} ${
+                      isAlert ? styles.tabBadgeAlert : ''
+                    }`}
+                  >
+                    {isAlert ? alertCount : tabCount[t]}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -455,62 +559,82 @@ function AdminDashboard({
 
         {tab !== 'backup' && (
           <div className={styles.toolbar}>
-            <div className={styles.searchWrap}>
-              <span className={styles.searchIcon} aria-hidden="true">
-                <SearchIcon size={16} />
+            <div className={styles.toolbarLeft}>
+              <div className={styles.searchWrap}>
+                <span className={styles.searchIcon} aria-hidden="true">
+                  <SearchIcon size={14} />
+                </span>
+                <input
+                  type="search"
+                  className={styles.searchInput}
+                  placeholder={
+                    tab === 'projects'
+                      ? 'Filter projects by name, slug, category…'
+                      : tab === 'articles'
+                        ? 'Filter articles by title, slug…'
+                        : tab === 'studio-log'
+                          ? 'Filter studio log entries…'
+                          : tab === 'comments'
+                            ? 'Filter comments by user, text…'
+                            : 'Filter messages by name, email, text…'
+                  }
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  aria-label={`Search ${tab}`}
+                />
+                {search && (
+                  <button
+                    type="button"
+                    className={styles.clearSearchBtn}
+                    onClick={() => setSearch('')}
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <span className={styles.itemCountBadge}>
+                {search
+                  ? `Filtered: ${currentFilteredCount} of ${tabCount[tab]}`
+                  : `${tabCount[tab]} items indexed`}
               </span>
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder={
-                  tab === 'projects'
-                    ? 'Search projects…'
-                    : tab === 'articles'
-                      ? 'Search articles…'
-                      : tab === 'studio-log'
-                        ? 'Search studio log…'
-                        : tab === 'comments'
-                          ? 'Search comments…'
-                          : 'Search messages…'
-                }
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                aria-label={`Search ${tab}`}
-              />
             </div>
-            {tab === 'projects' && (
-              <Button
-                size="small"
-                onClick={() => setProjectForm({ mode: 'create', project: null })}
-              >
-                <PlusIcon size={14} /> New Project
-              </Button>
-            )}
-            {tab === 'articles' && (
-              <Button
-                size="small"
-                onClick={() => setArticleForm({ mode: 'create', article: null })}
-              >
-                <PlusIcon size={14} /> New Article
-              </Button>
-            )}
-            {tab === 'studio-log' && (
-              <Button
-                size="small"
-                onClick={() => setStudioLogForm({ mode: 'create', entry: null })}
-              >
-                <PlusIcon size={14} /> New Entry
-              </Button>
-            )}
+
+            <div className={styles.toolbarRight}>
+              {tab === 'projects' && (
+                <Button
+                  size="small"
+                  onClick={() => setProjectForm({ mode: 'create', project: null })}
+                >
+                  <PlusIcon size={14} /> Deploy Project
+                </Button>
+              )}
+              {tab === 'articles' && (
+                <Button
+                  size="small"
+                  onClick={() => setArticleForm({ mode: 'create', article: null })}
+                >
+                  <PlusIcon size={14} /> Compose Article
+                </Button>
+              )}
+              {tab === 'studio-log' && (
+                <Button
+                  size="small"
+                  onClick={() => setStudioLogForm({ mode: 'create', entry: null })}
+                >
+                  <PlusIcon size={14} /> New Log Entry
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
         {tabLoading ? (
-          <LoadingState label={`Loading ${tab}`} />
+          <LoadingState label={`Synchronizing ${tab} data…`} />
         ) : tabError ? (
           <EmptyState
-            title="Failed to load"
-            description="Could not fetch data from the server."
+            title="Synchronization Failed"
+            description="Could not fetch data from the Hyperdrive cluster."
           />
         ) : tab === 'projects' ? (
           <ProjectsTable
@@ -559,9 +683,9 @@ function AdminDashboard({
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Confirm Delete"
+        title="Confirm Administrative Removal"
         description={getDeleteDescription()}
-        confirmLabel="Delete"
+        confirmLabel="Confirm Delete"
         cancelLabel="Cancel"
         variant="danger"
         onConfirm={performDelete}
@@ -631,8 +755,6 @@ function AdminDashboard({
   );
 }
 
-
-
 function ProjectsTable({
   projects,
   onEdit,
@@ -645,14 +767,19 @@ function ProjectsTable({
   onManageChangelog: (p: AdminProject) => void;
 }) {
   if (projects.length === 0) {
-    return <EmptyState title="No projects" description="No matching projects." />;
+    return (
+      <EmptyState
+        title="No projects located"
+        description="No matching projects recorded in the repository."
+      />
+    );
   }
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>Name</th>
+            <th>Project</th>
             <th>Category</th>
             <th>Downloads</th>
             <th>Status</th>
@@ -664,35 +791,51 @@ function ProjectsTable({
             <tr key={p.id}>
               <td>
                 <div className={styles.primary}>{p.name}</div>
-                <div className={styles.muted}>{p.slug}</div>
+                <span className={styles.slugChip}>{p.slug}</span>
               </td>
               <td>
                 <span className={`${styles.tag} ${styles.tagAccent}`}>
                   {p.category}
                 </span>
               </td>
-              <td>{(p.downloads ?? 0).toLocaleString()}</td>
+              <td>
+                <span className={styles.monoNumber}>
+                  {(p.downloads ?? 0).toLocaleString()}
+                </span>
+              </td>
               <td>
                 {p.is_featured ? (
-                  <span className={`${styles.tag} ${styles.tagSuccess}`}>
+                  <span className={`${styles.tag} ${styles.tagAccent}`}>
+                    <span className={styles.tagDot} />
                     Featured
                   </span>
                 ) : (
-                  <span className={styles.muted}>—</span>
+                  <span className={styles.mutedDash}>—</span>
                 )}
               </td>
               <td className={styles.actionsCol}>
                 <div className={styles.actions}>
-                  <Button size="small" variant="ghost" onClick={() => onManageChangelog(p)}>
-                    📝 Changelog
+                  <Button
+                    size="small"
+                    variant="ghost"
+                    onClick={() => onManageChangelog(p)}
+                    title="Manage version changelog"
+                  >
+                    Changelog
                   </Button>
-                  <Button size="small" variant="ghost" onClick={() => onEdit(p)}>
+                  <Button
+                    size="small"
+                    variant="ghost"
+                    onClick={() => onEdit(p)}
+                    title="Edit project parameters"
+                  >
                     <EditIcon size={12} /> Edit
                   </Button>
                   <Button
                     size="small"
                     variant="danger"
                     onClick={() => onDelete(p)}
+                    title="Delete project"
                   >
                     <TrashIcon size={12} /> Delete
                   </Button>
@@ -716,14 +859,19 @@ function ArticlesTable({
   onDelete: (a: AdminArticle) => void;
 }) {
   if (articles.length === 0) {
-    return <EmptyState title="No articles" description="No matching articles." />;
+    return (
+      <EmptyState
+        title="No articles located"
+        description="No matching article entries found."
+      />
+    );
   }
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>Title</th>
+            <th>Article</th>
             <th>Category</th>
             <th>Status</th>
             <th>Updated</th>
@@ -735,30 +883,47 @@ function ArticlesTable({
             <tr key={a.id}>
               <td>
                 <div className={styles.primary}>{a.title}</div>
-                <div className={styles.muted}>{a.slug}</div>
+                <span className={styles.slugChip}>{a.slug}</span>
               </td>
-              <td>{a.category || <span className={styles.muted}>—</span>}</td>
+              <td>
+                {a.category ? (
+                  <span className={`${styles.tag} ${styles.tagAccent}`}>
+                    {a.category}
+                  </span>
+                ) : (
+                  <span className={styles.mutedDash}>—</span>
+                )}
+              </td>
               <td>
                 <span
                   className={`${styles.tag} ${
                     a.published ? styles.tagSuccess : styles.tagWarning
                   }`}
                 >
+                  <span className={styles.tagDot} />
                   {a.published ? 'Published' : 'Draft'}
                 </span>
               </td>
-              <td className={styles.muted}>
-                {new Date(a.updated_at).toLocaleDateString()}
+              <td>
+                <span className={styles.monoDate}>
+                  {new Date(a.updated_at).toLocaleDateString()}
+                </span>
               </td>
               <td className={styles.actionsCol}>
                 <div className={styles.actions}>
-                  <Button size="small" variant="ghost" onClick={() => onEdit(a)}>
+                  <Button
+                    size="small"
+                    variant="ghost"
+                    onClick={() => onEdit(a)}
+                    title="Edit article"
+                  >
                     <EditIcon size={12} /> Edit
                   </Button>
                   <Button
                     size="small"
                     variant="danger"
                     onClick={() => onDelete(a)}
+                    title="Delete article"
                   >
                     <TrashIcon size={12} /> Delete
                   </Button>
@@ -784,14 +949,19 @@ function CommentsTable({
   onDelete: (c: AdminComment) => void;
 }) {
   if (comments.length === 0) {
-    return <EmptyState title="No comments" description="No matching comments." />;
+    return (
+      <EmptyState
+        title="No comments recorded"
+        description="User discussions will appear here for review."
+      />
+    );
   }
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>User</th>
+            <th>Author</th>
             <th>Preview</th>
             <th>Status</th>
             <th>Posted</th>
@@ -803,14 +973,14 @@ function CommentsTable({
             <tr key={c.id}>
               <td>
                 <div className={styles.primary}>{c.user_name}</div>
-                <div className={styles.muted}>{c.user_email}</div>
+                <span className={styles.monoDate}>{c.user_email}</span>
               </td>
               <td className={styles.preview}>
                 <button
                   type="button"
                   className={styles.previewBtn}
                   onClick={() => onView(c)}
-                  title="Click to view full comment"
+                  title="Click to view full comment inspection"
                 >
                   {c.comment_text.length > 80
                     ? `${c.comment_text.slice(0, 80)}…`
@@ -823,11 +993,14 @@ function CommentsTable({
                     c.approved ? styles.tagSuccess : styles.tagWarning
                   }`}
                 >
+                  <span className={styles.tagDot} />
                   {c.approved ? 'Approved' : 'Pending'}
                 </span>
               </td>
-              <td className={styles.muted}>
-                {new Date(c.created_at).toLocaleDateString()}
+              <td>
+                <span className={styles.monoDate}>
+                  {new Date(c.created_at).toLocaleDateString()}
+                </span>
               </td>
               <td className={styles.actionsCol}>
                 <div className={styles.actions}>
@@ -836,7 +1009,7 @@ function CommentsTable({
                     variant="ghost"
                     onClick={() => onView(c)}
                   >
-                    View
+                    Inspect
                   </Button>
                   {!c.approved && (
                     <Button
@@ -874,14 +1047,19 @@ function MessagesTable({
   onDelete: (m: AdminMessage) => void;
 }) {
   if (messages.length === 0) {
-    return <EmptyState title="No messages" description="No matching messages." />;
+    return (
+      <EmptyState
+        title="No contact messages"
+        description="Public contact submissions will register here."
+      />
+    );
   }
   return (
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>From</th>
+            <th>Sender</th>
             <th>Preview</th>
             <th>Received</th>
             <th>Status</th>
@@ -896,22 +1074,24 @@ function MessagesTable({
             >
               <td>
                 <div className={styles.primary}>{m.name}</div>
-                <div className={styles.muted}>{m.email}</div>
+                <span className={styles.monoDate}>{m.email}</span>
               </td>
               <td className={styles.preview}>
                 <button
                   type="button"
                   className={styles.previewBtn}
                   onClick={() => onView(m)}
-                  title="Click to view full message"
+                  title="Click to view full message transmission"
                 >
                   {m.message.length > 100
                     ? `${m.message.slice(0, 100)}…`
                     : m.message}
                 </button>
               </td>
-              <td className={styles.muted}>
-                {new Date(m.created_at).toLocaleDateString()}
+              <td>
+                <span className={styles.monoDate}>
+                  {new Date(m.created_at).toLocaleDateString()}
+                </span>
               </td>
               <td>
                 <span
@@ -919,6 +1099,7 @@ function MessagesTable({
                     m.read ? styles.tagSuccess : styles.tagDanger
                   }`}
                 >
+                  <span className={styles.tagDot} />
                   {m.read ? 'Read' : 'Unread'}
                 </span>
               </td>
@@ -957,7 +1138,7 @@ function StudioLogTable({
     return (
       <EmptyState
         title="No studio log entries"
-        description="No matching entries. Add one to show it on the home page."
+        description="Add changelogs and studio notes to display on the portal timeline."
       />
     );
   }
@@ -968,7 +1149,7 @@ function StudioLogTable({
           <tr>
             <th>Date</th>
             <th>Tag</th>
-            <th>Title</th>
+            <th>Title & Excerpt</th>
             <th>Status</th>
             <th>Order</th>
             <th className={styles.actionsCol}>Actions</th>
@@ -977,14 +1158,18 @@ function StudioLogTable({
         <tbody>
           {entries.map((e) => (
             <tr key={e.id}>
-              <td className={styles.muted}>{e.entry_date}</td>
               <td>
-                <span className={`${styles.tag} ${styles.tagAccent}`}>{e.tag}</span>
+                <span className={styles.monoDate}>{e.entry_date}</span>
+              </td>
+              <td>
+                <span className={`${styles.tag} ${styles.tagAccent}`}>
+                  {e.tag}
+                </span>
               </td>
               <td>
                 <div className={styles.primary}>{e.title}</div>
-                <div className={styles.muted}>
-                  {e.body.length > 100 ? `${e.body.slice(0, 100)}…` : e.body}
+                <div className={styles.subtitle}>
+                  {e.body.length > 90 ? `${e.body.slice(0, 90)}…` : e.body}
                 </div>
               </td>
               <td>
@@ -993,10 +1178,13 @@ function StudioLogTable({
                     e.published ? styles.tagSuccess : styles.tagWarning
                   }`}
                 >
+                  <span className={styles.tagDot} />
                   {e.published ? 'Published' : 'Draft'}
                 </span>
               </td>
-              <td className={styles.muted}>{e.display_order}</td>
+              <td>
+                <span className={styles.monoNumber}>{e.display_order}</span>
+              </td>
               <td className={styles.actionsCol}>
                 <div className={styles.actions}>
                   <Button size="small" variant="ghost" onClick={() => onEdit(e)}>
@@ -1015,8 +1203,6 @@ function StudioLogTable({
   );
 }
 
-
-
 function BackupSection({ token }: { token: string }) {
   const toast = useToast();
   const [loading, setLoading] = useState(false);
@@ -1026,7 +1212,9 @@ function BackupSection({ token }: { token: string }) {
     setLoading(true);
     try {
       const data = await exportBackup(token);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json',
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1035,7 +1223,7 @@ function BackupSection({ token }: { token: string }) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success('Backup exported successfully');
+      toast.success('Database backup exported successfully');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to export backup');
     } finally {
@@ -1053,8 +1241,8 @@ function BackupSection({ token }: { token: string }) {
       if (typeof text !== 'string') return;
 
       if (
-        !confirm(
-          'Are you sure you want to restore this backup? This will overwrite existing records with matching IDs.'
+        !window.confirm(
+          'Confirm database restoration: This operation will overwrite matching table rows with backup data. Proceed?',
         )
       ) {
         return;
@@ -1064,12 +1252,12 @@ function BackupSection({ token }: { token: string }) {
       try {
         const backupData = JSON.parse(text);
         const res = await restoreBackup(token, backupData);
-        toast.success(res.message || 'Backup restored successfully');
+        toast.success(res.message || 'Database restored successfully');
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Failed to restore backup');
       } finally {
         setRestoring(false);
-        e.target.value = ''; 
+        e.target.value = '';
       }
     };
     reader.readAsText(file);
@@ -1078,21 +1266,27 @@ function BackupSection({ token }: { token: string }) {
   return (
     <div className={styles.backupContainer}>
       <div className={styles.backupCard}>
-        <h3 className={styles.backupCardTitle}>Export Database Backup</h3>
+        <div className={styles.backupHeader}>
+          <h3 className={styles.backupCardTitle}>Export Database Snapshot</h3>
+        </div>
         <p className={styles.backupCardText}>
-          Download a complete backup of the database including all projects, articles,
-          changelogs, comments, studio log entries, and contact messages in a single JSON file.
+          Generate a full structural JSON dump containing projects, changelogs, articles,
+          comments, studio notes, and contact transmissions.
         </p>
-        <Button onClick={handleExport} disabled={loading || restoring}>
-          {loading ? 'Generating Backup…' : 'Export Backup JSON'}
-        </Button>
+        <div>
+          <Button onClick={handleExport} disabled={loading || restoring}>
+            {loading ? 'Generating Snapshot…' : 'Export Snapshot JSON'}
+          </Button>
+        </div>
       </div>
 
       <div className={styles.backupCard}>
-        <h3 className={styles.backupCardTitle}>Restore Database Backup</h3>
+        <div className={styles.backupHeader}>
+          <h3 className={styles.backupCardTitle}>Restore Database Snapshot</h3>
+        </div>
         <p className={styles.backupCardText}>
-          Restore your database using a previously exported JSON backup file. Rows in the backup
-          with matching primary keys will overwrite existing rows in the database.
+          Select a verified JSON snapshot to restore database state. Existing records with
+          matching primary identifiers will be updated.
         </p>
         <div className={styles.restoreActions}>
           <label className={styles.fileInputLabel}>
@@ -1103,15 +1297,13 @@ function BackupSection({ token }: { token: string }) {
               disabled={loading || restoring}
               style={{ display: 'none' }}
             />
-            {restoring ? 'Restoring Backup…' : 'Select Backup File & Restore'}
+            {restoring ? 'Restoring Snapshot…' : 'Select Backup File & Restore'}
           </label>
         </div>
       </div>
     </div>
   );
 }
-
-
 
 export default function Admin() {
   return (

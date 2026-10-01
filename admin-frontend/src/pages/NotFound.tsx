@@ -45,21 +45,21 @@ export default function NotFound() {
             margin: 0,
           }}
         >
-          This page slipped through the matrix.
+          Page Not Found
         </h1>
         <p
           style={{
             color: 'var(--color-text-muted)',
-            maxWidth: '40ch',
+            maxWidth: '44ch',
             margin: 0,
+            lineHeight: 'var(--leading-relaxed)',
           }}
         >
-          We couldn't find what you were looking for. It may have been moved,
-          renamed, or never existed in the first place.
+          The page you are looking for doesn't exist or has been moved.
         </p>
         <Link to="/" style={{ textDecoration: 'none' }}>
           <Button>
-            Back to Home <ArrowRightIcon size={16} />
+            Return to Dashboard <ArrowRightIcon size={16} />
           </Button>
         </Link>
       </div>

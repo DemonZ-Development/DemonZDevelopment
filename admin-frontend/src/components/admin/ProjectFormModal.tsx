@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -80,6 +80,8 @@ export function ProjectFormModal({
   onSaved,
 }: ProjectFormModalProps) {
   const toast = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const isEditing = project !== null;
   const [form, setForm] = useState<FormState>(() => toFormState(project));
   const [submitting, setSubmitting] = useState(false);
@@ -198,7 +200,7 @@ export function ProjectFormModal({
             options={[
               { value: 'games', label: 'Games & Mods' },
               { value: 'libraries', label: 'Libraries' },
-              { value: 'ai', label: 'AI Telemetry' },
+              { value: 'ai', label: 'AI Tools' },
               { value: 'utilities', label: 'Utilities' }
             ]}
           />
@@ -224,24 +226,26 @@ export function ProjectFormModal({
               onChange={(e) => update('redirect_url', e.target.value)}
               placeholder="https://… (download link)"
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>Project File</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className={styles.uploadGroup}>
+              <span className={styles.uploadLabel}>Project Binary</span>
+              <div className={styles.uploadRow}>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept=".zip,.jar,.tar.gz,.exe,application/octet-stream"
-                  id="project-file-upload"
                   style={{ display: 'none' }}
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     try {
-                      toast.info('Uploading project file...');
+                      toast.info('Uploading project file…');
                       const filePath = await uploadFile(token, file);
                       update('file_path', filePath);
-                      toast.success('File uploaded successfully!');
+                      toast.success('File uploaded successfully');
                     } catch (err) {
                       toast.error(err instanceof Error ? err.message : 'Upload failed');
+                    } finally {
+                      e.target.value = '';
                     }
                   }}
                 />
@@ -249,44 +253,44 @@ export function ProjectFormModal({
                   type="button"
                   variant="ghost"
                   size="small"
-                  onClick={() => document.getElementById('project-file-upload')?.click()}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  📦 Upload Project File
+                  Upload Binary
                 </Button>
                 {form.file_path ? (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }} title={form.file_path}>
-                    Linked: {form.file_path.split('/').pop()}
+                  <span className={styles.fileChip} title={form.file_path}>
+                    {form.file_path.split('/').pop()}
                   </span>
                 ) : (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                    No file uploaded
-                  </span>
+                  <span className={styles.emptyFile}>No file attached</span>
                 )}
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div className={styles.uploadGroup}>
               <Input
                 label="Image URL"
                 value={form.image_url}
                 onChange={(e) => update('image_url', e.target.value)}
                 placeholder="https://…/cover.png"
               />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className={styles.uploadRow}>
                 <input
+                  ref={imageInputRef}
                   type="file"
                   accept="image/*"
-                  id="project-image-upload"
                   style={{ display: 'none' }}
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     try {
-                      toast.info('Uploading image...');
+                      toast.info('Uploading image…');
                       const url = await uploadMedia(token, file);
                       update('image_url', url);
-                      toast.success('Image uploaded successfully!');
+                      toast.success('Image uploaded successfully');
                     } catch (err) {
                       toast.error(err instanceof Error ? err.message : 'Upload failed');
+                    } finally {
+                      e.target.value = '';
                     }
                   }}
                 />
@@ -294,14 +298,24 @@ export function ProjectFormModal({
                   type="button"
                   variant="ghost"
                   size="small"
-                  onClick={() => document.getElementById('project-image-upload')?.click()}
+                  onClick={() => imageInputRef.current?.click()}
                 >
-                  📤 Upload Local Image
+                  Upload Image
                 </Button>
                 {form.image_url && (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                    Linked: {form.image_url.split('/').pop()}
-                  </span>
+                  <div className={styles.imageThumbnailWrap}>
+                    <img
+                      src={form.image_url}
+                      alt="Thumbnail preview"
+                      className={styles.imageThumbnail}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                    <span className={styles.fileChip} title={form.image_url}>
+                      {form.image_url.split('/').pop()}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

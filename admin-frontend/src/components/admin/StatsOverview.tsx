@@ -12,6 +12,7 @@ interface StatsOverviewProps {
   pendingComments: number;
   unreadMessages: number;
   totalDownloads: number;
+  onSelectTab?: (tab: 'projects' | 'articles' | 'comments' | 'messages') => void;
 }
 
 interface TileProps {
@@ -19,31 +20,42 @@ interface TileProps {
   value: number | string;
   icon: React.ReactNode;
   tone?: 'default' | 'accent' | 'warning' | 'success';
-  href?: string;
+  badge?: string;
   onClick?: () => void;
 }
 
-function Tile({ label, value, icon, tone = 'default', href, onClick }: TileProps) {
-  const className = `${styles.tile} ${styles[tone]}`;
-  if (href) {
-    return (
-      <a className={className} href={href}>
+function Tile({ label, value, icon, tone = 'default', badge, onClick }: TileProps) {
+  const className = `${styles.tile} ${styles[tone]} ${onClick ? styles.clickable : ''}`;
+  const content = (
+    <>
+      <div className={styles.tileHeader}>
         <div className={styles.tileIcon}>{icon}</div>
-        <div className={styles.tileBody}>
-          <div className={styles.tileValue}>{value}</div>
-          <div className={styles.tileLabel}>{label}</div>
-        </div>
-      </a>
-    );
-  }
-  return (
-    <button type="button" className={className} onClick={onClick}>
-      <div className={styles.tileIcon}>{icon}</div>
+        {badge && <span className={styles.tileBadge}>{badge}</span>}
+      </div>
       <div className={styles.tileBody}>
         <div className={styles.tileValue}>{value}</div>
         <div className={styles.tileLabel}>{label}</div>
       </div>
-    </button>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={className}
+        onClick={onClick}
+        aria-label={`${label}: ${value}`}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={className} aria-label={`${label}: ${value}`}>
+      {content}
+    </div>
   );
 }
 
@@ -53,37 +65,45 @@ export function StatsOverview({
   pendingComments,
   unreadMessages,
   totalDownloads,
+  onSelectTab,
 }: StatsOverviewProps) {
   return (
     <div className={styles.grid}>
       <Tile
-        label="Projects"
+        label="Active Projects"
         value={projectCount}
-        icon={<PackageIcon size={20} />}
+        icon={<PackageIcon size={18} />}
         tone="accent"
+        onClick={() => onSelectTab?.('projects')}
       />
       <Tile
-        label="Articles"
+        label="Published Articles"
         value={articleCount}
-        icon={<CubeIcon size={20} />}
+        icon={<CubeIcon size={18} />}
+        onClick={() => onSelectTab?.('articles')}
       />
       <Tile
         label="Total Downloads"
         value={totalDownloads.toLocaleString()}
-        icon={<DownloadIcon size={20} />}
+        icon={<DownloadIcon size={18} />}
         tone="success"
+        onClick={() => onSelectTab?.('projects')}
       />
       <Tile
         label="Pending Comments"
         value={pendingComments}
-        icon={<AlertIcon size={20} />}
+        icon={<AlertIcon size={18} />}
         tone={pendingComments > 0 ? 'warning' : 'default'}
+        badge={pendingComments > 0 ? `${pendingComments} pending` : undefined}
+        onClick={() => onSelectTab?.('comments')}
       />
       <Tile
         label="Unread Messages"
         value={unreadMessages}
-        icon={<AlertIcon size={20} />}
+        icon={<AlertIcon size={18} />}
         tone={unreadMessages > 0 ? 'warning' : 'default'}
+        badge={unreadMessages > 0 ? `${unreadMessages} unread` : undefined}
+        onClick={() => onSelectTab?.('messages')}
       />
     </div>
   );
