@@ -321,14 +321,29 @@ async function isAuthorizedAdmin(c: any): Promise<boolean> {
   return false;
 }
 
-// Information & health endpoint for MCP client discovery
+// Information & health endpoint for MCP client discovery / SSE fallback
 mcpRoutes.get('/', async (c) => {
+  const accept = c.req.header('Accept') || '';
+  if (accept.includes('text/event-stream')) {
+    const url = new URL(c.req.url);
+    const postEndpoint = `${url.origin}/api/mcp`;
+    return new Response(`event: endpoint\ndata: ${postEndpoint}\n\n`, {
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+      },
+    });
+  }
+
   const authorized = await isAuthorizedAdmin(c);
   return c.json({
     status: 'ok',
     server: 'demonz-development-admin-mcp',
     version: '1.0.0',
     protocol: 'jsonrpc-2.0',
+    transport: 'streamable-http',
+    endpoint: '/api/mcp',
     authenticated: authorized,
     message: authorized
       ? 'Authenticated: MCP server is active and ready for tool execution.'
@@ -362,6 +377,11 @@ mcpRoutes.post('/', async (c) => {
     return c.json({ jsonrpc: '2.0', id, result: {} });
   }
 
+  // Handle client notifications (MCP spec / JSON-RPC 2.0 notifications require no error response)
+  if (body.method.startsWith('notifications/') || body.method === 'initialized') {
+    return c.json({ jsonrpc: '2.0', id, result: {} });
+  }
+
   // All other methods require Admin authentication
   const authorized = await isAuthorizedAdmin(c);
   if (!authorized) {
@@ -375,8 +395,10 @@ mcpRoutes.post('/', async (c) => {
     }, 401);
   }
 
-  // Initialize
+  // Initialize (MCP handshake)
   if (body.method === 'initialize') {
+    const sessionId = crypto.randomUUID();
+    c.header('mcp-session-id', sessionId);
     return c.json({
       jsonrpc: '2.0',
       id,
@@ -952,13 +974,13 @@ mcpRoutes.post('/', async (c) => {
         jsonrpc: '2.0',
         id,
         error: { code: -32601, message: `Tool "${name}" not found` },
-      }, 404);
+      }, 200);
     } catch (err) {
       return c.json({
         jsonrpc: '2.0',
         id,
         error: { code: -32603, message: (err as Error).message },
-      }, 500);
+      }, 200);
     }
   }
 
@@ -966,7 +988,12 @@ mcpRoutes.post('/', async (c) => {
     jsonrpc: '2.0',
     id,
     error: { code: -32601, message: `Method "${body.method}" not found` },
-  }, 404);
+  }, 200);
+});
+
+// Supports MCP session termination (SEP-2350 / Streamable HTTP)
+mcpRoutes.delete('/', async (c) => {
+  return c.json({ jsonrpc: '2.0', result: { status: 'terminated' } }, 200);
 });
 
 export default mcpRoutes;

@@ -151,10 +151,53 @@ describe('Public & MCP endpoints', () => {
         mockEnv,
       );
 
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(200);
       const data = await res.json<any>();
       expect(data.error).toBeDefined();
       expect(data.error.code).toBe(-32601);
+    });
+
+    it('handles MCP notifications and handshake smoothly', async () => {
+      const token = await signJWT({ role: 'admin', scope: 'mcp' }, JWT_SECRET);
+      
+      // initialize
+      const initRes = await app.request(
+        '/api/mcp',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'initialize',
+            params: { protocolVersion: '2024-11-05' },
+          }),
+        },
+        mockEnv,
+      );
+      expect(initRes.status).toBe(200);
+      expect(initRes.headers.get('mcp-session-id')).toBeDefined();
+
+      // notifications/initialized
+      const notifyRes = await app.request(
+        '/api/mcp',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'notifications/initialized',
+          }),
+        },
+        mockEnv,
+      );
+      expect(notifyRes.status).toBe(200);
     });
 
     it('generates 12-hour MCP access token via POST /api/admin/mcp/token', async () => {

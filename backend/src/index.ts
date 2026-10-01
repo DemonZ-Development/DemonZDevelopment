@@ -22,6 +22,25 @@ app.notFound((c) => c.json({ error: 'Not found' }, 404));
 
 app.use('*', secureHeaders());
 app.use('*', async (c, next) => {
+  if (c.req.path.startsWith('/api/mcp')) {
+    const mcpCors = cors({
+      origin: '*',
+      allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowHeaders: [
+        'Content-Type',
+        'Authorization',
+        'x-mcp-key',
+        'x-api-key',
+        'mcp-session-id',
+        'mcp-protocol-version',
+        'accept',
+      ],
+      exposeHeaders: ['mcp-session-id', 'mcp-protocol-version', 'content-type'],
+      maxAge: 86400,
+    });
+    return mcpCors(c, next);
+  }
+
   const origins = [
     c.env?.CORS_ORIGIN,
     'https://demonz.org',

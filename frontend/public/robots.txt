@@ -3,3 +3,4 @@ Allow: /
 Disallow: /admin
 
 Sitemap: https://demonz.org/sitemap.xml
+LLM-Context: https://demonz.org/llms.txt

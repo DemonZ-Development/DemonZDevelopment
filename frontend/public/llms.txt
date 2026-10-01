@@ -1,0 +1,31 @@
+# DemonZ Development
+
+> DemonZ Development is an independent software studio built by seven developers focused on native tools, devtools, open-source libraries, and high-performance systems.
+
+## Overview
+- Official Website: https://demonz.org
+- Studio Team: Seven core engineers and developers
+- Primary Stack: TypeScript, React, Go, Rust, C#, PostgreSQL, Cloudflare Workers
+- Headquarters & Admin: https://dzd-hq-9x2m4k.pages.dev
+
+## Core Sections
+- Projects & Tools: https://demonz.org/projects
+- Technical Articles & Tutorials: https://demonz.org/articles
+- Studio Log & Changelogs: https://demonz.org#timeline
+- Client Partnerships & Custom Systems: https://demonz.org/partnership
+
+## Software Releases
+- NexEU: Native system utilities and desktop tools for creators and developers.
+- Free VPS Manager: Cloud infrastructure orchestrator and server monitoring tool.
+- Studio Libraries: High-performance packages and open-source engine integrations.
+
+## Agent & AI Integration
+- Model Context Protocol (MCP) Server: https://dzd-api.demonzdevelopment.workers.dev/api/mcp
+- Transport: Streamable HTTP (JSON-RPC 2.0)
+- MCP Authentication: Bearer token or X-MCP-Key header (12-hour session keys generated via admin console)
+- Available MCP Tools: dzd_list_projects, dzd_get_project, dzd_list_articles, dzd_get_article, dzd_create_studio_log, dzd_search, dzd_get_stats
+
+## Contact & Policies
+- Inquiries: https://demonz.org/partnership
+- Terms of Service: https://demonz.org/terms
+- Privacy Policy: https://demonz.org/privacy

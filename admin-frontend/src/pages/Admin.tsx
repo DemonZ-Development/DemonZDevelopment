@@ -1340,6 +1340,8 @@ function McpSection({ token }: { token: string }) {
               '-y',
               'mcp-remote',
               mcpData?.server_url || 'https://dzd-api.demonzdevelopment.workers.dev/api/mcp',
+              '--transport',
+              'http-only',
               '--header',
               `Authorization: Bearer ${key}`,
             ],

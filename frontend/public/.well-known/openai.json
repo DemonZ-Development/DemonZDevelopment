@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "demonz_development",
+  "name_for_human": "DemonZ Development",
+  "description_for_model": "DemonZ Development is an independent software studio composed of seven developers creating native apps, devtools, libraries, and open-source systems. Provides access to technical articles, software projects, studio logs, and documentation.",
+  "description_for_human": "Explore software projects, technical articles, and releases from DemonZ Development.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://dzd-api.demonzdevelopment.workers.dev/api"
+  },
+  "mcp_server": {
+    "url": "https://dzd-api.demonzdevelopment.workers.dev/api/mcp",
+    "protocol": "jsonrpc-2.0",
+    "transport": "streamable-http"
+  },
+  "logo_url": "https://demonz.org/dzd-badge.png",
+  "contact_email": "contact@demonz.org",
+  "legal_info_url": "https://demonz.org/terms"
+}
