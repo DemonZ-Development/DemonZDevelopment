@@ -1385,15 +1385,14 @@ function McpSection({ token }: { token: string }) {
       <div className={styles.mcpCard}>
         <div className={styles.mcpHeader}>
           <div>
-            <h3 className={styles.mcpCardTitle}>12-Hour Secret Access Key</h3>
+            <h3 className={styles.mcpCardTitle}>Team Access Key</h3>
             <p className={styles.mcpCardText}>
-              Generate a temporary secret key for team members to authenticate their local MCP clients.
-              For security, each key automatically expires after 12 hours.
+              12-hour session key for local MCP bridges (Cursor, Claude, LM Studio).
             </p>
           </div>
           <Button onClick={handleGenerateKey} disabled={loading}>
             {loading ? <SpinnerIcon size={14} /> : null}
-            {mcpData ? 'Regenerate 12h Key' : 'Generate 12-Hour Key'}
+            {mcpData ? 'New Key' : 'Generate Key'}
           </Button>
         </div>
 
@@ -1419,9 +1418,9 @@ function McpSection({ token }: { token: string }) {
       <div className={styles.mcpCard}>
         <div className={styles.mcpHeader}>
           <div>
-            <h3 className={styles.mcpCardTitle}>Client Configuration (Claude Desktop / Cursor)</h3>
+            <h3 className={styles.mcpCardTitle}>Client Config</h3>
             <p className={styles.mcpCardText}>
-              Add this block to your <code>claude_desktop_config.json</code> or your agent's MCP settings to connect.
+              Paste into your MCP settings (Cursor, Claude Desktop, LM Studio).
             </p>
           </div>
           <Button size="small" variant="ghost" onClick={handleCopyConfig}>
@@ -1434,9 +1433,9 @@ function McpSection({ token }: { token: string }) {
       <div className={styles.mcpCard}>
         <div className={styles.mcpHeader}>
           <div>
-            <h3 className={styles.mcpCardTitle}>Available MCP Tools ({tools.length})</h3>
+            <h3 className={styles.mcpCardTitle}>Registered Tools ({tools.length})</h3>
             <p className={styles.mcpCardText}>
-              Connected agents and team members can invoke these tools to inspect and manage DemonZ Development content:
+              Available via this bridge:
             </p>
           </div>
         </div>
