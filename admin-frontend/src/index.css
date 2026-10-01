@@ -117,7 +117,6 @@
   --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.5);
   --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.6);
   --shadow-xl:   0 16px 48px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 16px rgba(0, 240, 255, 0.12);
 
   /* --- Surface Treatments --- */
   --glass-bg:     rgba(19, 18, 16, 0.85);
@@ -404,7 +403,7 @@ code {
 .btn-primary:hover {
   background: var(--color-accent-hover);
   color: var(--color-accent-text);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-ghost {
@@ -439,22 +438,8 @@ code {
 /* --- Divider --- */
 .divider {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-border) 20%,
-    var(--color-border) 80%,
-    transparent
-  );
+  background: var(--color-border);
   border: none;
-}
-
-/* --- Gradient Text --- */
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-text-white) 0%, var(--color-accent) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* --- Visually Hidden (Accessibility) --- */

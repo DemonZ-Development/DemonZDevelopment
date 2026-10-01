@@ -3,11 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchStats } from '../lib/api';
 import styles from './RealStats.module.css';
 
-function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
-}
+
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '';
@@ -32,7 +28,7 @@ export default function RealStats() {
     return (
       <div className={styles.section}>
         <div className={styles.error}>
-          Stats are temporarily unavailable. The page still works — this is just a snapshot.
+          Updates are temporarily unavailable.
         </div>
       </div>
     );
@@ -41,11 +37,13 @@ export default function RealStats() {
   if (isLoading || !stats) {
     return (
       <div className={styles.section}>
-        <div className={styles.statsGrid}>
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className={styles.statCard}>
-              <div className={`${styles.skeletonBar}`} style={{ height: 30, width: '60%' }} />
-              <div className={`${styles.skeletonBar}`} style={{ height: 10, width: '40%' }} />
+        <div className={styles.latestRow}>
+          {[0, 1].map((i) => (
+            <div key={i} className={styles.latestCard}>
+              <div className={styles.skeletonBar} style={{ height: 14, width: '28%' }} />
+              <div className={styles.skeletonBar} style={{ height: 26, width: '65%' }} />
+              <div className={styles.skeletonBar} style={{ height: 40, width: '100%' }} />
+              <div className={styles.skeletonBar} style={{ height: 16, width: '35%', marginTop: 'auto' }} />
             </div>
           ))}
         </div>
@@ -53,62 +51,45 @@ export default function RealStats() {
     );
   }
 
+  if (!stats.latestProject && !stats.latestArticle) {
+    return null;
+  }
+
   return (
     <div className={styles.section}>
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statValue}>{formatNumber(stats.projectCount)}</div>
-          <div className={styles.statLabel}>Projects</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statValue}>{formatNumber(stats.articleCount)}</div>
-          <div className={styles.statLabel}>Articles</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statValue}>{formatNumber(stats.totalDownloads)}</div>
-          <div className={styles.statLabel}>Total Downloads</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statValue}>{formatNumber(stats.commentCount)}</div>
-          <div className={styles.statLabel}>Approved Comments</div>
-        </div>
+      <div className={styles.latestRow}>
+        {stats.latestProject && (
+          <Link
+            to={`/projects/${stats.latestProject.slug}`}
+            className={styles.latestCard}
+          >
+            <span className={styles.latestKicker}>Latest release</span>
+            <h3 className={styles.latestTitle}>{stats.latestProject.name}</h3>
+            {stats.latestProject.tagline && (
+              <p className={styles.latestSummary}>{stats.latestProject.tagline}</p>
+            )}
+            <div className={styles.latestMeta}>
+              <span>View project →</span>
+            </div>
+          </Link>
+        )}
+        {stats.latestArticle && (
+          <Link
+            to={`/articles/${stats.latestArticle.slug}`}
+            className={styles.latestCard}
+          >
+            <span className={styles.latestKicker}>Latest article</span>
+            <h3 className={styles.latestTitle}>{stats.latestArticle.title}</h3>
+            {stats.latestArticle.summary && (
+              <p className={styles.latestSummary}>{stats.latestArticle.summary}</p>
+            )}
+            <div className={styles.latestMeta}>
+              {stats.latestArticle.category && <span>{stats.latestArticle.category}</span>}
+              <span>{formatDate(stats.latestArticle.published_at)}</span>
+            </div>
+          </Link>
+        )}
       </div>
-
-      {(stats.latestProject || stats.latestArticle) && (
-        <div className={styles.latestRow}>
-          {stats.latestProject && (
-            <Link
-              to={`/projects/${stats.latestProject.slug}`}
-              className={styles.latestCard}
-            >
-              <span className={styles.latestKicker}>Latest release</span>
-              <h3 className={styles.latestTitle}>{stats.latestProject.name}</h3>
-              {stats.latestProject.tagline && (
-                <p className={styles.latestSummary}>{stats.latestProject.tagline}</p>
-              )}
-              <div className={styles.latestMeta}>
-                <span>View project →</span>
-              </div>
-            </Link>
-          )}
-          {stats.latestArticle && (
-            <Link
-              to={`/articles/${stats.latestArticle.slug}`}
-              className={styles.latestCard}
-            >
-              <span className={styles.latestKicker}>Latest article</span>
-              <h3 className={styles.latestTitle}>{stats.latestArticle.title}</h3>
-              {stats.latestArticle.summary && (
-                <p className={styles.latestSummary}>{stats.latestArticle.summary}</p>
-              )}
-              <div className={styles.latestMeta}>
-                {stats.latestArticle.category && <span>{stats.latestArticle.category}</span>}
-                <span>{formatDate(stats.latestArticle.published_at)}</span>
-              </div>
-            </Link>
-          )}
-        </div>
-      )}
     </div>
   );
 }

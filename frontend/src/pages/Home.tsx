@@ -48,7 +48,7 @@ export default function Home() {
             and local AI experiments.
           </h1>
           <p className={styles.heroSubtitle}>
-            DemonZ is an independent collective of six developers. We build
+            DemonZ is an independent collective of seven developers. We build
             gameplay systems, publish the tooling we rely on in production,
             and experiment with local machine learning models. Most of what
             we release is public and free to use.
@@ -105,13 +105,13 @@ export default function Home() {
         </section>
       </ScrollReveal>
 
-      {/* Stats */}
+      {/* Latest Releases & Articles */}
       <ScrollReveal>
         <section className={styles.statsSection}>
           <div className={styles.sectionHead}>
-            <h2 className={styles.sectionHeading}>What we&apos;ve shipped</h2>
+            <h2 className={styles.sectionHeading}>Latest from the studio</h2>
             <p className={styles.sectionSub}>
-              Live counts across our public repositories, releases, and articles.
+              Recent software releases, game mods, and technical articles.
             </p>
           </div>
           <RealStats />
@@ -134,7 +134,7 @@ export default function Home() {
                 we build along the way.
               </p>
               <p>
-                We operate as an asynchronous team of six developers across
+                We operate as an asynchronous team of seven developers across
                 different time zones. If our open-source tooling solves a problem
                 or saves you time in your own builds, that is the goal.
               </p>
@@ -147,7 +147,7 @@ export default function Home() {
                 </div>
                 <div className={styles.factRow}>
                   <dt>Team</dt>
-                  <dd>Six developers</dd>
+                  <dd>Seven developers</dd>
                 </div>
                 <div className={styles.factRow}>
                   <dt>Licensing</dt>

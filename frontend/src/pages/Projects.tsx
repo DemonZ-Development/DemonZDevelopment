@@ -21,7 +21,7 @@ const CATEGORY_MAP: Record<string, string> = {
 const SORT_OPTIONS = [
   { value: 'downloads', label: 'Most Downloads' },
   { value: 'updated', label: 'Recently Updated' },
-  { value: 'name', label: 'Name A–Z' },
+  { value: 'name', label: 'Name A-Z' },
 ] as const;
 
 export default function Projects() {

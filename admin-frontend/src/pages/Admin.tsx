@@ -807,7 +807,7 @@ function ProjectsTable({
                     Featured
                   </span>
                 ) : (
-                  <span className={styles.mutedDash}>—</span>
+                  <span className={styles.mutedDash}>-</span>
                 )}
               </td>
               <td className={styles.actionsCol}>
@@ -888,7 +888,7 @@ function ArticlesTable({
                     {a.category}
                   </span>
                 ) : (
-                  <span className={styles.mutedDash}>—</span>
+                  <span className={styles.mutedDash}>-</span>
                 )}
               </td>
               <td>

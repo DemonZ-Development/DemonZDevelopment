@@ -113,7 +113,7 @@ export function ChangelogFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={`Manage Changelog - ${project.name}`}
+      title={`Manage Changelog: ${project.name}`}
       size="lg"
       footer={
         <Button type="button" variant="ghost" onClick={onClose}>

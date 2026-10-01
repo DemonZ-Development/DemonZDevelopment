@@ -76,7 +76,7 @@
 }
 
 .hitActive {
-  background: var(--color-accent-glow, rgba(120, 120, 255, 0.12));
+  background: var(--color-bg-surface);
 }
 
 .hitLabel {

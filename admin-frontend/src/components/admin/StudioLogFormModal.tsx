@@ -136,7 +136,7 @@ export function StudioLogFormModal({
           label="Title *"
           value={form.title}
           onChange={(e) => update('title', e.target.value)}
-          placeholder="Boss rush mod — backporting v2.4"
+          placeholder="Boss rush mod: backporting v2.4"
           required
         />
         <Textarea
