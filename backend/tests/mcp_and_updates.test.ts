@@ -123,6 +123,12 @@ describe('Public & MCP endpoints', () => {
       expect(toolNames).toContain('dzd_approve_comment');
       expect(toolNames).toContain('dzd_create_changelog');
       expect(toolNames).toContain('dzd_update_project_version');
+      expect(toolNames).toContain('dzd_create_project');
+      expect(toolNames).toContain('dzd_update_project');
+      expect(toolNames).toContain('dzd_create_article');
+      expect(toolNames).toContain('dzd_update_article');
+      expect(toolNames).toContain('dzd_create_studio_log');
+      expect(toolNames.length).toBe(17);
     });
 
     it('returns error for unknown tool when authenticated', async () => {
@@ -219,13 +225,71 @@ describe('Public & MCP endpoints', () => {
       expect(data.error.code).toBe(-32000);
     });
 
+    it('validates required fields when calling dzd_create_project', async () => {
+      const token = await signJWT({ role: 'admin' }, JWT_SECRET);
+      const res = await app.request(
+        '/api/mcp',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'create-proj-1',
+            method: 'tools/call',
+            params: {
+              name: 'dzd_create_project',
+              arguments: { name: 'Test' }, // missing slug, tagline, description, category
+            },
+          }),
+        },
+        mockEnv,
+      );
+
+      expect(res.status).toBe(200);
+      const data = await res.json<any>();
+      expect(data.result.isError).toBe(true);
+      expect(data.result.content[0].text).toContain('Error: name, slug, tagline, description, and category are required.');
+    });
+
+    it('validates required fields when calling dzd_create_article', async () => {
+      const token = await signJWT({ role: 'admin' }, JWT_SECRET);
+      const res = await app.request(
+        '/api/mcp',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'create-art-1',
+            method: 'tools/call',
+            params: {
+              name: 'dzd_create_article',
+              arguments: { title: 'Test Article' }, // missing slug, summary, content
+            },
+          }),
+        },
+        mockEnv,
+      );
+
+      expect(res.status).toBe(200);
+      const data = await res.json<any>();
+      expect(data.result.isError).toBe(true);
+      expect(data.result.content[0].text).toContain('Error: title, slug, summary, and content are required.');
+    });
+
     it('provides server discovery info via GET /api/mcp', async () => {
       const res = await app.request('/api/mcp', { method: 'GET' }, mockEnv);
       expect(res.status).toBe(200);
       const data = await res.json<any>();
       expect(data.status).toBe('ok');
       expect(data.server).toBe('demonz-development-admin-mcp');
-      expect(data.tools_count).toBeGreaterThan(5);
+      expect(data.tools_count).toBe(17);
     });
   });
 });

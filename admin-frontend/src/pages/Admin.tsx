@@ -1361,16 +1361,21 @@ function McpSection({ token }: { token: string }) {
   const tools = [
     { name: 'dzd_list_projects', desc: 'List software projects, games, and tools with download counts' },
     { name: 'dzd_get_project', desc: 'Get detailed project information, download URLs, and changelogs' },
+    { name: 'dzd_create_project', desc: 'Create and publish a new software project, game, or tool' },
+    { name: 'dzd_update_project', desc: 'Update metadata, links, or featured status of an existing project' },
+    { name: 'dzd_update_project_version', desc: 'Update a project release version string' },
+    { name: 'dzd_create_changelog', desc: 'Publish release notes and version changelogs' },
     { name: 'dzd_check_update', desc: 'Check for software updates against an installed client version' },
     { name: 'dzd_list_articles', desc: 'Browse published technical articles, tutorials, and posts' },
     { name: 'dzd_get_article', desc: 'Read full markdown content of any published article' },
+    { name: 'dzd_create_article', desc: 'Create and publish a new technical article, tutorial, or post' },
+    { name: 'dzd_update_article', desc: 'Update content, summary, category, or publish state of an article' },
+    { name: 'dzd_create_studio_log', desc: 'Publish a new development log entry on the studio timeline' },
     { name: 'dzd_search', desc: 'Search projects and articles across the entire knowledge base' },
     { name: 'dzd_get_stats', desc: 'Get live project counts, article counts, and download metrics' },
     { name: 'dzd_list_unread_messages', desc: 'List unread user contact and inquiry messages' },
     { name: 'dzd_list_pending_comments', desc: 'List user comments awaiting admin moderation' },
     { name: 'dzd_approve_comment', desc: 'Approve pending comments for public display' },
-    { name: 'dzd_update_project_version', desc: 'Update a project release version string' },
-    { name: 'dzd_create_changelog', desc: 'Publish release notes and version changelogs' },
   ];
 
   return (

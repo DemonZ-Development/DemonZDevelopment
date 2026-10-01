@@ -187,6 +187,101 @@ const MCP_TOOLS = [
       required: ['slug', 'version', 'title', 'changes'],
     },
   },
+  {
+    name: 'dzd_create_project',
+    description: 'Create and publish a new software project, game, or tool on DemonZ Development.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Display name of the project' },
+        slug: { type: 'string', description: 'Unique URL slug (e.g. "my-tool")' },
+        tagline: { type: 'string', description: 'One-line summary of the project' },
+        description: { type: 'string', description: 'Full description (Markdown supported)' },
+        category: { type: 'string', description: 'Category (e.g. "game", "tool", "library", "other")' },
+        version: { type: 'string', description: 'Initial version string (default "1.0.0")' },
+        downloads: { type: 'number', description: 'Initial download counter (default 0)' },
+        redirect_url: { type: 'string', description: 'External download/redirect URL' },
+        file_path: { type: 'string', description: 'Hosted download file path' },
+        image_url: { type: 'string', description: 'Hero/banner image URL' },
+        source_url: { type: 'string', description: 'GitHub/source repository URL' },
+        author: { type: 'string', description: 'Author name (default "DemonZ Development")' },
+        is_featured: { type: 'boolean', description: 'Whether to feature on the homepage' },
+      },
+      required: ['name', 'slug', 'tagline', 'description', 'category'],
+    },
+  },
+  {
+    name: 'dzd_update_project',
+    description: 'Update metadata or links of an existing project by slug.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug of the project to update' },
+        name: { type: 'string', description: 'New display name' },
+        tagline: { type: 'string', description: 'New tagline' },
+        description: { type: 'string', description: 'New description' },
+        category: { type: 'string', description: 'New category' },
+        version: { type: 'string', description: 'New version' },
+        redirect_url: { type: 'string', description: 'New redirect URL' },
+        file_path: { type: 'string', description: 'New file path' },
+        image_url: { type: 'string', description: 'New image URL' },
+        source_url: { type: 'string', description: 'New source URL' },
+        author: { type: 'string', description: 'New author' },
+        is_featured: { type: 'boolean', description: 'Update featured status' },
+      },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'dzd_create_article',
+    description: 'Create and publish a new technical article, tutorial, or announcement on DemonZ Development.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Title of the article' },
+        slug: { type: 'string', description: 'Unique URL slug (e.g. "building-with-gemini")' },
+        summary: { type: 'string', description: 'Brief abstract or excerpt' },
+        content: { type: 'string', description: 'Full article body in Markdown format' },
+        category: { type: 'string', description: 'Article category or topic' },
+        image_url: { type: 'string', description: 'Header image URL' },
+        published: { type: 'boolean', description: 'Set true to publish immediately (default true)' },
+      },
+      required: ['title', 'slug', 'summary', 'content'],
+    },
+  },
+  {
+    name: 'dzd_update_article',
+    description: 'Update the content, summary, or publish status of an existing article by slug.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Slug of the article to update' },
+        title: { type: 'string', description: 'New article title' },
+        summary: { type: 'string', description: 'New abstract/summary' },
+        content: { type: 'string', description: 'New markdown content' },
+        category: { type: 'string', description: 'New category' },
+        image_url: { type: 'string', description: 'New header image URL' },
+        published: { type: 'boolean', description: 'Update published state' },
+      },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'dzd_create_studio_log',
+    description: 'Create a new entry in the DemonZ studio development log timeline.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string', description: 'Log title' },
+        body: { type: 'string', description: 'Log details/notes (Markdown supported)' },
+        tag: { type: 'string', description: 'Tag category: "game", "lib", "ai", "site", or "other"' },
+        entry_date: { type: 'string', description: 'Date string YYYY-MM-DD (defaults to today)' },
+        display_order: { type: 'number', description: 'Ordering index (default 0)' },
+        published: { type: 'boolean', description: 'Whether to show on timeline (default true)' },
+      },
+      required: ['title', 'body'],
+    },
+  },
 ];
 
 // Helper to authenticate admin
@@ -606,6 +701,249 @@ mcpRoutes.post('/', async (c) => {
           id,
           result: {
             content: [{ type: 'text', text: `Changelog for ${slug} v${version} published successfully.` }],
+          },
+        });
+      }
+
+      if (name === 'dzd_create_project') {
+        const {
+          name: projName,
+          slug,
+          tagline,
+          description,
+          category,
+          version = '1.0.0',
+          downloads = 0,
+          redirect_url = null,
+          file_path = null,
+          image_url = null,
+          source_url = null,
+          author = 'DemonZ Development',
+          is_featured = false,
+        } = args || {};
+
+        if (!projName || !slug || !tagline || !description || !category) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: 'Error: name, slug, tagline, description, and category are required.' }],
+              isError: true,
+            },
+          });
+        }
+
+        const existing = await queryOne(c.env, 'SELECT id FROM projects WHERE slug = $1', [slug]);
+        if (existing) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: `Error: Project with slug "${slug}" already exists.` }],
+              isError: true,
+            },
+          });
+        }
+
+        const created = await queryOne(
+          c.env,
+          `INSERT INTO projects (name, slug, tagline, description, category, version, downloads, redirect_url, file_path, image_url, source_url, author, is_featured)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+           RETURNING id, slug, name, category, version`,
+          [projName, slug, tagline, description, category, version, downloads, redirect_url, file_path, image_url, source_url, author, is_featured],
+        );
+
+        return c.json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [{ type: 'text', text: `Project "${projName}" (${slug}) created successfully!\n\n${JSON.stringify(created, null, 2)}` }],
+          },
+        });
+      }
+
+      if (name === 'dzd_update_project') {
+        const { slug, ...updates } = args || {};
+        if (!slug) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: 'Error: slug is required.' }], isError: true },
+          });
+        }
+
+        const allowedFields = [
+          'name', 'tagline', 'description', 'category', 'version',
+          'downloads', 'redirect_url', 'file_path', 'image_url', 'source_url',
+          'author', 'is_featured',
+        ];
+        const keys = Object.keys(updates).filter((k) => allowedFields.includes(k) && updates[k] !== undefined);
+        if (keys.length === 0) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: 'No valid update fields provided.' }], isError: true },
+          });
+        }
+
+        const values = keys.map((k) => updates[k]);
+        const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+        values.push(slug);
+        const updated = await queryOne(
+          c.env,
+          `UPDATE projects SET ${setClauses}, updated_at = NOW() WHERE slug = $${values.length} RETURNING id, slug, name, category, version, updated_at`,
+          values,
+        );
+
+        if (!updated) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: `Project "${slug}" not found.` }], isError: true },
+          });
+        }
+
+        return c.json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [{ type: 'text', text: `Project "${slug}" updated successfully!\n\n${JSON.stringify(updated, null, 2)}` }],
+          },
+        });
+      }
+
+      if (name === 'dzd_create_article') {
+        const {
+          title,
+          slug,
+          summary,
+          content,
+          category = 'General',
+          image_url = null,
+          published = true,
+        } = args || {};
+
+        if (!title || !slug || !summary || !content) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: 'Error: title, slug, summary, and content are required.' }],
+              isError: true,
+            },
+          });
+        }
+
+        const existing = await queryOne(c.env, 'SELECT id FROM articles WHERE slug = $1', [slug]);
+        if (existing) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: `Error: Article with slug "${slug}" already exists.` }],
+              isError: true,
+            },
+          });
+        }
+
+        const publishedAt = published ? new Date().toISOString() : null;
+        const created = await queryOne(
+          c.env,
+          `INSERT INTO articles (title, slug, summary, content, category, image_url, published, published_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           RETURNING id, slug, title, category, published`,
+          [title, slug, summary, content, category, image_url, published, publishedAt],
+        );
+
+        return c.json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [{ type: 'text', text: `Article "${title}" (${slug}) created successfully!\n\n${JSON.stringify(created, null, 2)}` }],
+          },
+        });
+      }
+
+      if (name === 'dzd_update_article') {
+        const { slug, ...updates } = args || {};
+        if (!slug) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: 'Error: slug is required.' }], isError: true },
+          });
+        }
+
+        const allowedFields = ['title', 'summary', 'content', 'category', 'image_url', 'published'];
+        const keys = Object.keys(updates).filter((k) => allowedFields.includes(k) && updates[k] !== undefined);
+        if (keys.length === 0) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: 'No valid update fields provided.' }], isError: true },
+          });
+        }
+
+        const values = keys.map((k) => updates[k]);
+        const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+        values.push(slug);
+        const updated = await queryOne(
+          c.env,
+          `UPDATE articles SET ${setClauses} WHERE slug = $${values.length} RETURNING id, slug, title, category, published`,
+          values,
+        );
+
+        if (!updated) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: { content: [{ type: 'text', text: `Article "${slug}" not found.` }], isError: true },
+          });
+        }
+
+        return c.json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [{ type: 'text', text: `Article "${slug}" updated successfully!\n\n${JSON.stringify(updated, null, 2)}` }],
+          },
+        });
+      }
+
+      if (name === 'dzd_create_studio_log') {
+        const {
+          title,
+          body: logBody,
+          tag = 'other',
+          entry_date = new Date().toISOString().slice(0, 10),
+          display_order = 0,
+          published = true,
+        } = args || {};
+
+        if (!title || !logBody) {
+          return c.json({
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [{ type: 'text', text: 'Error: title and body are required.' }],
+              isError: true,
+            },
+          });
+        }
+
+        const created = await queryOne(
+          c.env,
+          `INSERT INTO studio_log (entry_date, tag, title, body, display_order, published)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id, entry_date, tag, title, published`,
+          [entry_date, tag, title, logBody, display_order, published],
+        );
+
+        return c.json({
+          jsonrpc: '2.0',
+          id,
+          result: {
+            content: [{ type: 'text', text: `Studio log entry "${title}" created successfully!\n\n${JSON.stringify(created, null, 2)}` }],
           },
         });
       }
