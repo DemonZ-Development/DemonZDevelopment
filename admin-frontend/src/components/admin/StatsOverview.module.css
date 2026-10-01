@@ -18,9 +18,9 @@
   color: inherit;
   cursor: default;
   text-decoration: none;
+  box-shadow: none;
   transition: border-color var(--transition-base),
-              background var(--transition-base),
-              box-shadow var(--transition-base);
+              background var(--transition-base);
   width: 100%;
 }
 
@@ -31,7 +31,6 @@
 .clickable:hover {
   border-color: var(--color-border-hover);
   background: var(--color-bg-elevated);
-  box-shadow: var(--shadow-sm);
 }
 
 .clickable:focus-visible {
@@ -54,15 +53,19 @@
   width: 34px;
   height: 34px;
   border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  transition: all var(--transition-fast);
+  box-shadow: none;
+  transition: color var(--transition-fast),
+              border-color var(--transition-fast),
+              background var(--transition-fast);
 }
 
-.tile:hover .tileIcon {
+.clickable:hover .tileIcon {
   border-color: var(--color-border-hover);
   color: var(--color-text-strong);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tileBadge {
@@ -73,11 +76,17 @@
   letter-spacing: 0.04em;
   padding: 2px 7px;
   border-radius: var(--radius-sm);
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-  border: 1px solid var(--color-warning-border);
+  background: var(--color-bg-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
   display: inline-flex;
   align-items: center;
+}
+
+.tileBadgeAlert {
+  background: rgba(251, 191, 36, 0.08);
+  color: var(--color-warning);
+  border-color: rgba(251, 191, 36, 0.25);
 }
 
 .tileBody {
@@ -103,30 +112,4 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: 4px;
-}
-
-.accent .tileIcon {
-  background: var(--color-accent-muted);
-  border-color: var(--color-border-accent);
-  color: var(--color-accent);
-}
-
-.accent:hover {
-  border-color: var(--color-border-accent);
-}
-
-.success .tileIcon {
-  background: var(--color-success-bg);
-  border-color: var(--color-success-border);
-  color: var(--color-success);
-}
-
-.warning .tileValue {
-  color: var(--color-warning);
-}
-
-.warning .tileIcon {
-  background: var(--color-warning-bg);
-  border-color: var(--color-warning-border);
-  color: var(--color-warning);
 }

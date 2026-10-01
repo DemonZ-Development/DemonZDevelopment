@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Project } from '../lib/api';
-import { DownloadIcon, ChevronRightIcon, CubeIcon } from './ui/Icon';
+import { DownloadIcon, ChevronRightIcon, FolderIcon } from './ui/Icon';
 import styles from './ProjectCard.module.css';
 
 function formatDownloads(n: number): string {
@@ -36,7 +36,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           />
         ) : (
           <span className={styles.iconFallback}>
-            <CubeIcon size={40} />
+            <FolderIcon size={40} />
           </span>
         )}
       </div>

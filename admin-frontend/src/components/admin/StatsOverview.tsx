@@ -1,8 +1,9 @@
 import {
-  AlertIcon,
-  CubeIcon,
+  FolderIcon,
+  FileTextIcon,
   DownloadIcon,
-  PackageIcon,
+  MessageSquareIcon,
+  MailIcon,
 } from '../ui/Icon';
 import styles from './StatsOverview.module.css';
 
@@ -19,18 +20,26 @@ interface TileProps {
   label: string;
   value: number | string;
   icon: React.ReactNode;
-  tone?: 'default' | 'accent' | 'warning' | 'success';
   badge?: string;
+  isBadgeAlert?: boolean;
   onClick?: () => void;
 }
 
-function Tile({ label, value, icon, tone = 'default', badge, onClick }: TileProps) {
-  const className = `${styles.tile} ${styles[tone]} ${onClick ? styles.clickable : ''}`;
+function Tile({ label, value, icon, badge, isBadgeAlert, onClick }: TileProps) {
+  const className = `${styles.tile} ${onClick ? styles.clickable : ''}`;
   const content = (
     <>
       <div className={styles.tileHeader}>
         <div className={styles.tileIcon}>{icon}</div>
-        {badge && <span className={styles.tileBadge}>{badge}</span>}
+        {badge && (
+          <span
+            className={`${styles.tileBadge} ${
+              isBadgeAlert ? styles.tileBadgeAlert : ''
+            }`}
+          >
+            {badge}
+          </span>
+        )}
       </div>
       <div className={styles.tileBody}>
         <div className={styles.tileValue}>{value}</div>
@@ -72,37 +81,35 @@ export function StatsOverview({
       <Tile
         label="Active Projects"
         value={projectCount}
-        icon={<PackageIcon size={18} />}
-        tone="accent"
+        icon={<FolderIcon size={18} />}
         onClick={() => onSelectTab?.('projects')}
       />
       <Tile
         label="Published Articles"
         value={articleCount}
-        icon={<CubeIcon size={18} />}
+        icon={<FileTextIcon size={18} />}
         onClick={() => onSelectTab?.('articles')}
       />
       <Tile
         label="Total Downloads"
         value={totalDownloads.toLocaleString()}
         icon={<DownloadIcon size={18} />}
-        tone="success"
         onClick={() => onSelectTab?.('projects')}
       />
       <Tile
         label="Pending Comments"
         value={pendingComments}
-        icon={<AlertIcon size={18} />}
-        tone={pendingComments > 0 ? 'warning' : 'default'}
+        icon={<MessageSquareIcon size={18} />}
         badge={pendingComments > 0 ? `${pendingComments} pending` : undefined}
+        isBadgeAlert={pendingComments > 0}
         onClick={() => onSelectTab?.('comments')}
       />
       <Tile
         label="Unread Messages"
         value={unreadMessages}
-        icon={<AlertIcon size={18} />}
-        tone={unreadMessages > 0 ? 'warning' : 'default'}
+        icon={<MailIcon size={18} />}
         badge={unreadMessages > 0 ? `${unreadMessages} unread` : undefined}
+        isBadgeAlert={unreadMessages > 0}
         onClick={() => onSelectTab?.('messages')}
       />
     </div>
