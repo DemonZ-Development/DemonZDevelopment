@@ -24,13 +24,13 @@
 .primary {
   background: var(--color-accent);
   color: var(--color-accent-text, var(--color-text-white));
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-medium);
 }
 
 .primary:hover:not(:disabled) {
   background: var(--color-accent-hover);
   color: var(--color-accent-text, var(--color-text-white));
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(75, 142, 247, 0.25);
   transform: translateY(-1px);
 }
 

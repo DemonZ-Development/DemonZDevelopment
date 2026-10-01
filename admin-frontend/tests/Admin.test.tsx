@@ -51,26 +51,25 @@ describe('Admin Page', () => {
 
   it('renders the login screen when unauthenticated', () => {
     render(<Admin />);
-    expect(screen.getByText('Authorization Required')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'DemonZ Admin' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••••••••••••')).toBeInTheDocument();
-    expect(screen.getByText('Authenticate Session')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign In' })).toBeInTheDocument();
   });
 
-  it('authenticates and displays the admin command center', async () => {
+  it('authenticates and displays the admin dashboard', async () => {
     vi.mocked(api.adminLogin).mockResolvedValueOnce('mock-admin-token');
 
     render(<Admin />);
     const pwdInput = screen.getByPlaceholderText('••••••••••••••••');
     fireEvent.change(pwdInput, { target: { value: 'secret-pass' } });
-    fireEvent.click(screen.getByText('Authenticate Session'));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign In' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Admin Command Center')).toBeInTheDocument();
+      expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('DEMONZ')).toBeInTheDocument();
-    expect(screen.getByText('HQ')).toBeInTheDocument();
-    expect(screen.getByText('SYSTEM ONLINE')).toBeInTheDocument();
+    expect(screen.getByText('DemonZ')).toBeInTheDocument();
+    expect(screen.getByText('Admin')).toBeInTheDocument();
   });
 
   it('renders the dashboard with projects when token is pre-set', async () => {
@@ -79,7 +78,7 @@ describe('Admin Page', () => {
     render(<Admin />);
 
     await waitFor(() => {
-      expect(screen.getByText('Admin Command Center')).toBeInTheDocument();
+      expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
     });
 
     await waitFor(() => {
@@ -94,7 +93,7 @@ describe('Admin Page', () => {
     render(<Admin />);
 
     await waitFor(() => {
-      expect(screen.getByText('Admin Command Center')).toBeInTheDocument();
+      expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
     });
 
     const articlesTab = screen.getByRole('tab', { name: /articles/i });
@@ -107,7 +106,7 @@ describe('Admin Page', () => {
     const backupTab = screen.getByRole('tab', { name: /backup/i });
     fireEvent.click(backupTab);
 
-    expect(screen.getByText('Export Database Snapshot')).toBeInTheDocument();
-    expect(screen.getByText('Restore Database Snapshot')).toBeInTheDocument();
+    expect(screen.getByText('Export Database Backup')).toBeInTheDocument();
+    expect(screen.getByText('Restore Database Backup')).toBeInTheDocument();
   });
 });

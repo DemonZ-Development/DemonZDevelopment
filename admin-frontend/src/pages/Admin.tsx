@@ -94,7 +94,7 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
     } catch (err) {
       const msg =
         err instanceof ApiError && err.status === 401
-          ? 'Invalid administrative credentials'
+          ? 'Incorrect password'
           : err instanceof Error
             ? err.message
             : 'Connection error';
@@ -110,13 +110,12 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
       <div className={styles.loginHeader}>
         <img
           src="/dzd-logo.png"
-          alt="DemonZ Development Logo"
+          alt="DemonZ Development"
           className={styles.loginBadge}
         />
-        <span className={styles.loginMeta}>DZD-HQ // ACCESS CONTROL LEVEL 1</span>
-        <h2 className={styles.loginTitle}>Authorization Required</h2>
+        <h2 className={styles.loginTitle}>DemonZ Admin</h2>
         <p className={styles.loginSubtext}>
-          Enter administrator credentials to unlock the operations terminal.
+          Enter your password to continue.
         </p>
       </div>
 
@@ -125,7 +124,7 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
       <form onSubmit={handleSubmit}>
         <Input
           type="password"
-          label="Access Key / Password"
+          label="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••••••••••"
@@ -133,14 +132,9 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
           required
         />
         <Button type="submit" disabled={submitting} className={styles.loginButton}>
-          {submitting ? 'Authenticating…' : 'Authenticate Session'}
+          {submitting ? 'Signing in…' : 'Sign In'}
         </Button>
       </form>
-
-      <div className={styles.loginFooter}>
-        <span>NODE: CLOUDFLARE WORKERS EDGE</span>
-        <span>STATUS: SECURE</span>
-      </div>
     </div>
   );
 }
@@ -152,7 +146,7 @@ function AdminDashboard({
   token: string;
   onLogout: () => void;
 }) {
-  useDocumentTitle('Command Center // DZD Admin');
+  useDocumentTitle('DemonZ Admin');
 
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('projects');
@@ -184,7 +178,7 @@ function AdminDashboard({
       const s = await fetchStats();
       setStats(s);
     } catch {
-      toast.error('Failed to load stats telemetry');
+      toast.error('Failed to load stats');
     } finally {
       setStatsLoading(false);
     }
@@ -220,7 +214,7 @@ function AdminDashboard({
         return;
       }
       setTabError(true);
-      toast.error('Failed to synchronize data');
+      toast.error('Failed to load data');
     } finally {
       setTabLoading(false);
     }
@@ -234,7 +228,7 @@ function AdminDashboard({
     setRefreshing(true);
     try {
       await Promise.all([loadStats(), loadTabData()]);
-      toast.success('Telemetry synchronized');
+      toast.success('Refreshed');
     } finally {
       setRefreshing(false);
     }
@@ -438,16 +432,12 @@ function AdminDashboard({
           <div className={styles.brandCluster}>
             <img
               src="/dzd-logo.png"
-              alt="DZD Logo"
+              alt="DemonZ Logo"
               className={styles.brandLogo}
             />
             <div className={styles.brandTitles}>
-              <span className={styles.brandName}>DEMONZ</span>
-              <span className={styles.brandHQ}>HQ</span>
-            </div>
-            <div className={styles.statusIndicator}>
-              <span className={styles.pulseDot} />
-              SYSTEM ONLINE
+              <span className={styles.brandName}>DemonZ</span>
+              <span className={styles.brandBadge}>Admin</span>
             </div>
           </div>
 
@@ -457,18 +447,17 @@ function AdminDashboard({
               target="_blank"
               rel="noopener noreferrer"
               className={styles.siteLink}
-              title="Open public portal in new tab"
             >
-              Public Site ↗
+              demonz.org ↗
             </a>
             <button
               type="button"
               className={styles.syncBtn}
               onClick={handleRefreshAll}
               disabled={refreshing || tabLoading}
-              title="Re-synchronize telemetry and records"
+              title="Refresh data"
             >
-              {refreshing ? <SpinnerIcon size={12} /> : '↻'} Sync
+              {refreshing ? <SpinnerIcon size={12} /> : '↻'} Refresh
             </button>
             <Button variant="ghost" size="small" onClick={onLogout}>
               <LogoutIcon size={14} /> Sign Out
@@ -480,15 +469,15 @@ function AdminDashboard({
       <div className={styles.container}>
         <div className={styles.headerRow}>
           <div className={styles.headerLeft}>
-            <h1 className={styles.title}>Admin Command Center</h1>
+            <h1 className={styles.title}>Admin Dashboard</h1>
             <p className={styles.subtitle}>
-              Operational infrastructure, content deployment, and system telemetry.
+              Manage projects, articles, comments, and messages.
             </p>
           </div>
         </div>
 
         {statsLoading && !stats ? (
-          <LoadingState label="Loading telemetry" />
+          <LoadingState label="Loading overview…" />
         ) : stats ? (
           <StatsOverview
             projectCount={stats.projectCount}
@@ -528,7 +517,7 @@ function AdminDashboard({
               t === 'studio-log'
                 ? 'Studio Log'
                 : t === 'backup'
-                  ? 'Backup & System'
+                  ? 'Backup & Data'
                   : t.charAt(0).toUpperCase() + t.slice(1);
 
             return (
@@ -569,14 +558,14 @@ function AdminDashboard({
                   className={styles.searchInput}
                   placeholder={
                     tab === 'projects'
-                      ? 'Filter projects by name, slug, category…'
+                      ? 'Search projects…'
                       : tab === 'articles'
-                        ? 'Filter articles by title, slug…'
+                        ? 'Search articles…'
                         : tab === 'studio-log'
-                          ? 'Filter studio log entries…'
+                          ? 'Search studio logs…'
                           : tab === 'comments'
-                            ? 'Filter comments by user, text…'
-                            : 'Filter messages by name, email, text…'
+                            ? 'Search comments…'
+                            : 'Search messages…'
                   }
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -595,8 +584,8 @@ function AdminDashboard({
               </div>
               <span className={styles.itemCountBadge}>
                 {search
-                  ? `Filtered: ${currentFilteredCount} of ${tabCount[tab]}`
-                  : `${tabCount[tab]} items indexed`}
+                  ? `${currentFilteredCount} of ${tabCount[tab]} found`
+                  : `${tabCount[tab]} total`}
               </span>
             </div>
 
@@ -606,7 +595,7 @@ function AdminDashboard({
                   size="small"
                   onClick={() => setProjectForm({ mode: 'create', project: null })}
                 >
-                  <PlusIcon size={14} /> Deploy Project
+                  <PlusIcon size={14} /> Add Project
                 </Button>
               )}
               {tab === 'articles' && (
@@ -614,7 +603,7 @@ function AdminDashboard({
                   size="small"
                   onClick={() => setArticleForm({ mode: 'create', article: null })}
                 >
-                  <PlusIcon size={14} /> Compose Article
+                  <PlusIcon size={14} /> New Article
                 </Button>
               )}
               {tab === 'studio-log' && (
@@ -630,11 +619,11 @@ function AdminDashboard({
         )}
 
         {tabLoading ? (
-          <LoadingState label={`Synchronizing ${tab} data…`} />
+          <LoadingState label={`Loading ${tab}…`} />
         ) : tabError ? (
           <EmptyState
-            title="Synchronization Failed"
-            description="Could not fetch data from the Hyperdrive cluster."
+            title="Failed to Load Data"
+            description="Could not connect to the API. Please try again."
           />
         ) : tab === 'projects' ? (
           <ProjectsTable
@@ -683,9 +672,9 @@ function AdminDashboard({
 
       <ConfirmDialog
         open={deleteTarget !== null}
-        title="Confirm Administrative Removal"
+        title="Confirm Delete"
         description={getDeleteDescription()}
-        confirmLabel="Confirm Delete"
+        confirmLabel="Delete"
         cancelLabel="Cancel"
         variant="danger"
         onConfirm={performDelete}
@@ -769,8 +758,8 @@ function ProjectsTable({
   if (projects.length === 0) {
     return (
       <EmptyState
-        title="No projects located"
-        description="No matching projects recorded in the repository."
+        title="No projects yet"
+        description="Add your first project to get started."
       />
     );
   }
@@ -819,7 +808,7 @@ function ProjectsTable({
                     size="small"
                     variant="ghost"
                     onClick={() => onManageChangelog(p)}
-                    title="Manage version changelog"
+                    title="Manage changelog"
                   >
                     Changelog
                   </Button>
@@ -827,7 +816,7 @@ function ProjectsTable({
                     size="small"
                     variant="ghost"
                     onClick={() => onEdit(p)}
-                    title="Edit project parameters"
+                    title="Edit project"
                   >
                     <EditIcon size={12} /> Edit
                   </Button>
@@ -861,8 +850,8 @@ function ArticlesTable({
   if (articles.length === 0) {
     return (
       <EmptyState
-        title="No articles located"
-        description="No matching article entries found."
+        title="No articles yet"
+        description="Write your first article to publish content."
       />
     );
   }
@@ -951,7 +940,7 @@ function CommentsTable({
   if (comments.length === 0) {
     return (
       <EmptyState
-        title="No comments recorded"
+        title="No comments yet"
         description="User discussions will appear here for review."
       />
     );
@@ -980,7 +969,7 @@ function CommentsTable({
                   type="button"
                   className={styles.previewBtn}
                   onClick={() => onView(c)}
-                  title="Click to view full comment inspection"
+                  title="Click to view full comment"
                 >
                   {c.comment_text.length > 80
                     ? `${c.comment_text.slice(0, 80)}…`
@@ -1009,7 +998,7 @@ function CommentsTable({
                     variant="ghost"
                     onClick={() => onView(c)}
                   >
-                    Inspect
+                    View
                   </Button>
                   {!c.approved && (
                     <Button
@@ -1081,7 +1070,7 @@ function MessagesTable({
                   type="button"
                   className={styles.previewBtn}
                   onClick={() => onView(m)}
-                  title="Click to view full message transmission"
+                  title="Click to view message"
                 >
                   {m.message.length > 100
                     ? `${m.message.slice(0, 100)}…`
@@ -1138,7 +1127,7 @@ function StudioLogTable({
     return (
       <EmptyState
         title="No studio log entries"
-        description="Add changelogs and studio notes to display on the portal timeline."
+        description="Add changelogs and studio notes to display on the timeline."
       />
     );
   }
@@ -1242,7 +1231,7 @@ function BackupSection({ token }: { token: string }) {
 
       if (
         !window.confirm(
-          'Confirm database restoration: This operation will overwrite matching table rows with backup data. Proceed?',
+          'Restore database: This operation will overwrite matching table rows with backup data. Proceed?',
         )
       ) {
         return;
@@ -1267,26 +1256,25 @@ function BackupSection({ token }: { token: string }) {
     <div className={styles.backupContainer}>
       <div className={styles.backupCard}>
         <div className={styles.backupHeader}>
-          <h3 className={styles.backupCardTitle}>Export Database Snapshot</h3>
+          <h3 className={styles.backupCardTitle}>Export Database Backup</h3>
         </div>
         <p className={styles.backupCardText}>
-          Generate a full structural JSON dump containing projects, changelogs, articles,
-          comments, studio notes, and contact transmissions.
+          Download a complete JSON export of projects, changelogs, articles,
+          comments, studio notes, and messages.
         </p>
         <div>
           <Button onClick={handleExport} disabled={loading || restoring}>
-            {loading ? 'Generating Snapshot…' : 'Export Snapshot JSON'}
+            {loading ? 'Exporting…' : 'Export Backup JSON'}
           </Button>
         </div>
       </div>
 
       <div className={styles.backupCard}>
         <div className={styles.backupHeader}>
-          <h3 className={styles.backupCardTitle}>Restore Database Snapshot</h3>
+          <h3 className={styles.backupCardTitle}>Restore Database Backup</h3>
         </div>
         <p className={styles.backupCardText}>
-          Select a verified JSON snapshot to restore database state. Existing records with
-          matching primary identifiers will be updated.
+          Select a previously exported JSON backup file to restore database records.
         </p>
         <div className={styles.restoreActions}>
           <label className={styles.fileInputLabel}>

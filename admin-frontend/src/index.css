@@ -24,15 +24,15 @@
   --color-text-strong: #f0ede6;
   --color-text-white:  #faf8f3;
 
-  /* --- Colors: Electric Cyan Accent --- */
-  --color-accent:        #00f0ff;
-  --color-accent-hover:  #38bdf8;
-  --color-accent-text:   #0c0b0a;
-  --color-accent-muted:  rgba(0, 240, 255, 0.10);
-  --color-accent-glow:   rgba(0, 240, 255, 0.04);
-  --color-accent-soft:   rgba(0, 240, 255, 0.02);
+  /* --- Colors: Accent (DemonZ Blue) --- */
+  --color-accent:        #4b8ef7;
+  --color-accent-hover:  #6ba3ff;
+  --color-accent-text:   #ffffff;
+  --color-accent-muted:  rgba(75, 142, 247, 0.12);
+  --color-accent-glow:   rgba(75, 142, 247, 0.06);
+  --color-accent-soft:   rgba(75, 142, 247, 0.04);
 
-  /* --- Colors: Status Telemetry --- */
+  /* --- Colors: Status --- */
   --color-success:        #4ade80;
   --color-success-bg:     rgba(74, 222, 128, 0.10);
   --color-success-border: rgba(74, 222, 128, 0.25);
@@ -45,11 +45,11 @@
   --color-danger-bg:      rgba(248, 113, 113, 0.10);
   --color-danger-border:  rgba(248, 113, 113, 0.25);
 
-  /* --- Colors: Crisp 1px Borders --- */
+  /* --- Colors: Borders --- */
   --color-border:        #262320;
   --color-border-hover:  #383430;
   --color-border-strong: #47423c;
-  --color-border-accent: rgba(0, 240, 255, 0.28);
+  --color-border-accent: rgba(75, 142, 247, 0.30);
 
   /* --- Aliases & Backward Compatibility --- */
   --color-surface:           var(--color-bg-surface);
